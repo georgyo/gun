@@ -1,9 +1,9 @@
 // Build the published JavaScript from the TypeScript sources.
 //
 // The sources only use erasable TypeScript syntax (`erasableSyntaxOnly`), so
-// every type annotation is simply blanked out with whitespace (ts-blank-space).
-// The emitted JavaScript therefore keeps the exact same code, line numbers and
-// columns as the TypeScript it came from, which keeps it diffable against the
+// every type annotation is simply blanked out (ts-blank-space, see trimBlanked).
+// The emitted JavaScript therefore keeps the exact same code and line numbers
+// as the TypeScript it came from, which keeps it diffable against the
 // historical hand written JavaScript.
 //
 //   gun.js   <- src/*.ts bundled in the classic `USE(function(module){...})` format.
@@ -21,6 +21,7 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import tsBlankSpace from 'ts-blank-space';
+import ts from 'typescript';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const check = process.argv.includes('--check');
@@ -85,6 +86,7 @@ const BUNDLES: Bundle[] = [
     ],
     outer: '  ',
     inner: '',
+    unbuilt: true,
   },
 ];
 
@@ -103,7 +105,83 @@ function strip(file: string): string {
   if (errors.length) {
     throw new Error(errors.join('\n'));
   }
-  return out;
+  const cut = typeTail(file, source);
+  return trimBlanked(source.slice(0, cut), out.slice(0, cut)).replace(/\s*$/, '\n');
+}
+
+// Type declarations are kept at the end of a source file (TYPESCRIPT.md,
+// "Keep the line numbers"). They would be emitted as a tail of empty statements
+// (`;`) and doc comments, so the output stops where that tail starts. A doc
+// comment directly in front of the first trailing declaration goes with it;
+// other comments are kept.
+function typeTail(file: string, source: string): number {
+  const sf = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, false, ts.ScriptKind.TS);
+  const typeOnly = (node: ts.Statement): boolean =>
+    ts.isInterfaceDeclaration(node) ||
+    ts.isTypeAliasDeclaration(node) ||
+    (ts.isImportDeclaration(node) && !!node.importClause?.isTypeOnly) ||
+    (ts.isExportDeclaration(node) && node.isTypeOnly) ||
+    (ts.canHaveModifiers(node) && !!ts.getModifiers(node)?.some((m) => m.kind === ts.SyntaxKind.DeclareKeyword)) ||
+    (ts.isModuleDeclaration(node) && !!(node.flags & ts.NodeFlags.GlobalAugmentation));
+  const statements = sf.statements;
+  let first = statements.length;
+  while (first > 0 && typeOnly(statements[first - 1])) {
+    first--;
+  }
+  if (first === statements.length) {
+    return source.length;
+  }
+  const node = statements[first];
+  let cut = node.getStart(sf);
+  const comments = ts.getLeadingCommentRanges(source, node.pos) ?? [];
+  const doc = comments[comments.length - 1];
+  if (doc && source.startsWith('/**', doc.pos) && !source.slice(doc.end, cut).trim()) {
+    cut = doc.pos;
+  }
+  return cut;
+}
+
+// ts-blank-space keeps every character in place, replacing types with spaces.
+// That keeps line numbers, but the spaces add up (gun.js would grow by ~16%),
+// so a run of blanked characters within a line is removed, or reduced to one
+// space where two tokens would otherwise merge. Whitespace that the source
+// itself has, and every newline, is kept, so every code token keeps its line
+// (columns move). The empty lines at the end of a file are dropped.
+function trimBlanked(source: string, out: string): string {
+  if (source.length !== out.length) {
+    throw new Error('ts-blank-space changed the length of the source');
+  }
+  const word = /[\w$\u0080-\uffff]/;
+  const isBlanked = (i: number): boolean => out[i] === ' ' && source[i] !== ' ' && source[i] !== '\t';
+  const result: string[] = [];
+  for (let i = 0; i < out.length; ) {
+    if (!isBlanked(i)) {
+      result.push(out[i++]);
+      continue;
+    }
+    let j = i;
+    while (j < out.length && (isBlanked(j) || (out[j] === ' ' || out[j] === '\t') && isBlanked(j + 1))) {
+      j++;
+    }
+    // The run i..j-1 is blanked type syntax (plus spaces inside it). Look at the
+    // code on both sides to decide whether a separator is still needed.
+    const left = result[result.length - 1] ?? '\n';
+    const right = out[j] ?? '\n';
+    const merge =
+      (word.test(left) && word.test(right)) ||
+      ('+-'.includes(left) && left === right) ||
+      (left === '/' && '/*'.includes(right));
+    if (merge) {
+      result.push(' ');
+    } else if (right === '\n' || right === '\r' || j >= out.length || ')]},;'.includes(right)) {
+      // The type ended the line or a bracket: drop the indentation or separator before it too.
+      while (result.length && (result[result.length - 1] === ' ' || result[result.length - 1] === '\t')) {
+        result.pop();
+      }
+    }
+    i = j;
+  }
+  return result.join('').replace(/(\r?\n)(?:\r?\n)+$/, '$1');
 }
 
 // Inside a bundle `require('./x')` resolves to a sibling module registered with

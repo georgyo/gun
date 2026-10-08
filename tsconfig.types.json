@@ -2,6 +2,10 @@
   "compilerOptions": {
     "emitDeclarationOnly": true,
     "declaration": true,
+    // `import {} from './radix'` in lib/radix.d.ts (and the other lib/*.d.ts)
+    // must keep resolving to the hand written definition itself, not to the
+    // lib/radix.ts source next to it: look for X.d.ts before X.ts.
+    "moduleSuffixes": [".d", ""],
   },
   "include": [
     // only compile the type definitions by default.

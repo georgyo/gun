@@ -1,13 +1,13 @@
 ;(function(){
 	function as(el, gun, cb, opt){
 		el = $(el);
-		if(gun === as.gui && as.el && as.el.is(el)){ return }
+		if(gun === (as).gui && (as).el && (as).el.is(el)){ return }
 
 		opt = opt || {};
 		opt.match = opt.match || '{{ ';
 		opt.end = opt.end || ' }}';
 		;(function(){ // experimental
-			function nest(t, s,e, r, i,tmp,u){
+			 function nest(t, s,e, r, i,tmp,u) {
 				if(r && !r.length){ return t||'' }
 				if(!t){ return [] }
 				e = e || s;
@@ -19,7 +19,7 @@
 			}
 
 			/* experimental */
-			function template(tag, attr){
+			function template(tag, attr) {
 				var html = (tag = $(tag))[0].outerHTML, sub, tmp;
 				if(html && (0 > html.indexOf(opt.match))){ return }
 				if(!attr){
@@ -41,7 +41,7 @@
 					if(expr = expr.slice(1).join(' ')){
 						expr = new Function("_", "b", "return (_)" + expr);
 					}
-					var val = (expr && expr('')) || '';
+					var val = (expr && (expr)('')) || '';
 					data.push(val);
 					if(!attr){ tag.text(val) }
 
@@ -54,7 +54,7 @@
 						ref = ref.get(v);
 					});
 					ref.on(function(v){
-						v = data[pos] = expr? expr(v) : v;
+						v = data[pos] = expr? (expr)(v) : v;
 						var tmp = nest(plate, opt.match, opt.end, data);
 						if(attr){
 							tag.attr(attr, tmp);
@@ -68,8 +68,8 @@
 
 		}());
 
-		as.gui = gun;
-		as.el = el;
+		(as).gui = gun;
+		(as).el = el;
 		if(el.data('as')){
 			el.html(el.data('as').fresh);
 		} else {
@@ -108,16 +108,16 @@
 			ref.get(function(at){
 				var data = at.put, key = at.get, gui = at.gun || at.$, ui = name, back;
 				if(model){
-					ui = model.has[(gui._).id];
+					ui = (model).has[(gui._).id];
 					if(!ui){
-						back = gui.back(many - 1);
-						ui = model.has[(back._).id];
+						back = gui.back(many  - 1);
+						ui = (model).has[(back._).id];
 						if(!ui){
 							if(!(back._).get){ return }
-							ui = (model.has[(back._).id] = model.$.clone(true).prependTo(model.on));
+							ui = ((model).has[(back._).id] = (model).$.clone(true).prependTo((model).on));
 						}
 						ui = ui.find("[name='"+key+"']").first();
-						model.has[(gui._).id] = ui;
+						(model).has[(gui._).id] = ui;
 					}
 				}
 				ui.data('gun', gui);
@@ -127,7 +127,7 @@
 					var tmp = as.sort(data, up.parent().children().last());
 					tmp? up.insertAfter(tmp) : up.prependTo(up.parent());
 				}
-				if(as.lock === gui){ return }
+				if((as).lock === gui){ return }
 				if(!(data && data instanceof Object)){
 					(ui[0] && u === ui[0].value)? ui.text(data) : ui.val(data);
 				}
@@ -139,22 +139,22 @@
 		});
 	}
 	as.wait = function(cb, wait, to){
-		return function(a,b,c){
-			var me = as.typing = this;
+		return function( a,b,c){
+			var me = (as).typing = this;
 			clearTimeout(to);
 			to = setTimeout(function(){
 				cb.call(me, a,b,c);
-				as.typing = me = false;
+				(as).typing = me = false;
 			}, wait || 200);
 		}
 	}
-	as.sort = function sort(num, li){ return parseFloat(num) >= parseFloat($(li).find('.sort').text() || -Infinity)? li : sort(num, li.prev()) }
+	as.sort = function sort(num, li) { return parseFloat(num) >= parseFloat(($(li).find('.sort').text() || -Infinity))? li : sort(num, li.prev()) } // `parseFloat` stringifies (the data, a sort text or -Infinity).
 	$(document).on('keyup', 'input, textarea, [contenteditable]', as.wait(function(){
 		var el = $(this);
 		var data = (el[0] && u === el[0].value)? el.text() : el.val();
 		var g = el.data('gun');
 		if(!g){ return }
-		as.lock = g;
+		(as).lock = g;
 		g.put(data);
 	}, 99));
 	//$(document).on('submit', 'form', function(e){ e.preventDefault() });
@@ -170,22 +170,22 @@
 		e.preventDefault();
 		r(tmp);
 	});
-	function r(href){
+	function r(href) {
 		if(!href){ return }
 		if(href[0] == '#'){ href = href.slice(1) }
 		var h = href.split('/')[0];
 		$('.page').hide();
 		$('#' + h).show();
-		if(r.on === h){ return }
+		if((r).on === h){ return }
 		location.hash = href;
 		(r.page[h] || {on:function(){}}).on();
-		r.on = h;
+		(r).on = h;
 		return r;
 	};
 	r.page = function(h, cb){
 		r.page[h] = r.page[h] || {on: cb};
 		return r;
-	}
+	};
 	r.render = function(id, model, onto, data){
 		var $data = $(
 			$('#' + id).get(0) ||

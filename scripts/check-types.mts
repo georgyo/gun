@@ -9,6 +9,13 @@
 //     is an "evolving any": TypeScript types each read by control flow. That is
 //     fine as long as no read of it is actually `any` and it is read at all;
 //     otherwise it must be annotated (`var lot: undefined` when unused).
+//   * A runtime source (every *.ts but the type only `types.ts` modules and the
+//     build scripts) has no `export`: Bun and esbuild resolve an extensionless
+//     `require('./radix')` in a source checkout to lib/radix.ts and load a .ts
+//     file with an `export` as an ES module (without `module`). Shared types go
+//     in src/types.ts, sea/types.ts or lib/types.ts.
+//   * `as unknown as` casts are counted; other chained casts (`x as A as B`)
+//     are counted with them.
 //
 // Usage: node --experimental-strip-types scripts/check-types.mts [--list]
 
@@ -101,16 +108,23 @@ for (const file of config.fileNames) {
         problems.push(`${where}\n    ^ unjustified \`any\` (add a comment containing "any: <reason>")`);
       }
     }
-    if (
-      ts.isAsExpression(node) &&
-      ts.isAsExpression(node.expression) &&
-      node.expression.type.kind === ts.SyntaxKind.UnknownKeyword
-    ) {
+    if (ts.isAsExpression(node) && ts.isAsExpression(node.expression)) {
       doubleCasts++;
     }
     ts.forEachChild(node, visit);
   };
   visit(sf);
+  if (!/(^|\/)types\.ts$/.test(rel) && !rel.endsWith('.mts')) {
+    for (const st of sf.statements) {
+      const exported =
+        ts.isExportDeclaration(st) || ts.isExportAssignment(st) ||
+        (ts.canHaveModifiers(st) && (ts.getModifiers(st) ?? []).some((m) => m.kind === ts.SyntaxKind.ExportKeyword));
+      if (exported) {
+        const line = sf.getLineAndCharacterOfPosition(st.getStart(sf)).line;
+        problems.push(`${rel}:${line + 1}: a runtime source must not \`export\` (move shared types to a types.ts module)`);
+      }
+    }
+  }
   const checked = program.getSourceFile(file);
   if (checked) {
     evolvingAny(checked, rel);
@@ -122,7 +136,7 @@ if (list) {
 }
 console.log(
   `check-types: ${config.fileNames.length} files, ${justified.length} justified \`any\`, ` +
-    `${doubleCasts} \`as unknown as\` casts, ${problems.length} problems`,
+    `${doubleCasts} \`as unknown as\` (or chained) casts, ${problems.length} problems`,
 );
 if (problems.length) {
   console.error(problems.join('\n'));

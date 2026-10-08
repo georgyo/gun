@@ -50,7 +50,7 @@
     var u;
     if(u+''== typeof btoa){
       if(u+'' == typeof Buffer){
-        try{ global.Buffer = USE("buffer", 1).Buffer }catch(e){ console.log("Please `npm install buffer` or add it to your package.json !") }
+        try{ global.Buffer = (USE("buffer", 1)).Buffer }catch(e){ console.log("Please `npm install buffer` or add it to your package.json !") }
       }
       global.btoa = function(data){ return Buffer.from(data, "binary").toString("base64") };
       global.atob = function(data){ return Buffer.from(data, "base64").toString("binary") };
@@ -63,7 +63,7 @@
     function SeaArray() {}
     Object.assign(SeaArray, { from: Array.from })
     SeaArray.prototype = Object.create(Array.prototype)
-    SeaArray.prototype.toString = function(enc, start, end) { enc = enc || 'utf8'; start = start || 0;
+    SeaArray.prototype.toString = function( enc, start, end) { enc = enc || 'utf8'; start = start || 0;
       const length = this.length
       if (enc === 'hex') {
         const buf = new Uint8Array(this)
@@ -165,17 +165,17 @@
 
   ;USE(function(module){
     const SEA = USE('./root')
-    const api = {Buffer: USE('./buffer')}
+    const api = {Buffer: USE('./buffer')};
     var o = {}, u;
 
     // ideally we can move away from JSON entirely? unlikely due to compatibility issues... oh well.
     JSON.parseAsync = JSON.parseAsync || function(t,cb,r){ var u; try{ cb(u, JSON.parse(t,r)) }catch(e){ cb(e) } }
     JSON.stringifyAsync = JSON.stringifyAsync || function(v,cb,r,s){ var u; try{ cb(u, JSON.stringify(v,r,s)) }catch(e){ cb(e) } }
 
-    api.parse = function(t,r){ return new Promise(function(res, rej){
+    api.parse = function(t, r){ return new Promise(function(res, rej){
       JSON.parseAsync(t,function(err, raw){ err? rej(err) : res(raw) },r);
     })}
-    api.stringify = function(v,r,s){ return new Promise(function(res, rej){
+    api.stringify = function(v, r, s){ return new Promise(function(res, rej){
       JSON.stringifyAsync(v,function(err, raw){ err? rej(err) : res(raw) },r,s);
     })}
 
@@ -224,7 +224,7 @@
 
     // This creates Web Cryptography API compliant JWK for sign/verify purposes
     s.jwk = function(pub, d){  // d === priv
-      pub = pub.split('.');
+      pub = (pub).split('.');
       var x = pub[0], y = pub[1];
       var jwk = {kty: "EC", crv: "P-256", x: x, y: y, ext: true};
       jwk.key_ops = d ? ['sign'] : ['verify'];
@@ -246,7 +246,7 @@
     s.check = function(t){ return (typeof t == 'string') && ('SEA{' === t.slice(0,4)) }
     s.parse = async function p(t){ try {
       var yes = (typeof t == 'string');
-      if(yes && 'SEA{' === t.slice(0,4)){ t = t.slice(3) }
+      if(yes && 'SEA{' === (t).slice(0,4)){ t = (t).slice(3) }
       return yes ? await shim.parse(t) : t;
       } catch (e) {}
       return t;
@@ -282,7 +282,7 @@
     var u;
 
     SEA.work = SEA.work || (async (data, pair, cb, opt) => { try { // used to be named `proof`
-      var salt = (pair||{}).epub || pair; // epub not recommended, salt should be random!
+      var salt = ((pair||{})).epub || pair; // epub not recommended, salt should be random!
       opt = opt || {};
       if(salt instanceof Function){
         cb = salt;
@@ -299,10 +299,10 @@
       var work = await (shim.ossl || shim.subtle).deriveBits({
         name: opt.name || 'PBKDF2',
         iterations: opt.iterations || S.pbkdf2.iter,
-        salt: new shim.TextEncoder().encode(opt.salt || salt),
+        salt: new shim.TextEncoder().encode((opt.salt || salt)),
         hash: opt.hash || S.pbkdf2.hash,
       }, key, opt.length || (S.pbkdf2.ks * 8))
-      data = shim.random(data.length)  // Erase data in case of passphrase
+      data = shim.random((data).length)  // Erase data in case of passphrase
       var r = shim.Buffer.from(work, 'binary').toString(opt.encode || 'base64')
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
@@ -377,7 +377,7 @@
         else { throw e }
       } dh = dh || {};
 
-      var r = { pub: sa.pub, priv: sa.priv, /* pubId, */ epub: dh.epub, epriv: dh.epriv }
+      var r = { pub: sa.pub, priv: sa.priv, /* pubId, */ epub: dh.epub, epriv: dh.epriv };
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
     } catch(e) {
@@ -400,22 +400,22 @@
 
     SEA.sign = SEA.sign || (async (data, pair, cb, opt) => { try {
       opt = opt || {};
-      if(!(pair||opt).priv){
+      if(!((pair||opt)).priv){
         if(!SEA.I){ throw 'No signing key.' }
         pair = await SEA.I(null, {what: data, how: 'sign', why: opt.why});
       }
       if(u === data){ throw '`undefined` not allowed.' }
       var json = await S.parse(data);
       var check = opt.check = opt.check || json;
-      if(SEA.verify && (SEA.opt.check(check) || (check && check.s && check.m))
+      if(SEA.verify && (SEA.opt.check(check) || (check && (check).s && (check).m))
       && u !== await SEA.verify(check, pair)){ // don't sign if we already signed it.
         var r = await S.parse(check);
         if(!opt.raw){ r = 'SEA' + await shim.stringify(r) }
         if(cb){ try{ cb(r) }catch(e){console.log(e)} }
         return r;
       }
-      var pub = pair.pub;
-      var priv = pair.priv;
+      var pub = (pair).pub;
+      var priv = (pair).priv;
       var jwk = S.jwk(pub, priv);
       var hash = await sha(json);
       var sig = await (shim.ossl || shim.subtle).importKey('jwk', jwk, {name: 'ECDSA', namedCurve: 'P-256'}, false, ['sign'])
@@ -452,7 +452,7 @@
       }
       opt = opt || {};
       // SEA.I // verify is free! Requires no user permission.
-      var pub = pair.pub || pair;
+      var pub = (pair).pub || pair;
       var key = SEA.opt.slow_leak? await SEA.opt.slow_leak(pub) : await (shim.ossl || shim.subtle).importKey('jwk', S.jwk(pub), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']);
       var hash = await sha(json.m);
       var buf, sig, check, tmp; try{
@@ -491,9 +491,9 @@
     var O = SEA.opt;
     SEA.opt.fall_verify = async function(data, pair, cb, opt, f){
       if(f === SEA.opt.fallback){ throw "Signature did not match" } f = f || 1;
-      var tmp = data||'';
+      var tmp = (data||'');
       data = SEA.opt.unpack(data) || data;
-      var json = await S.parse(data), pub = pair.pub || pair, key = await SEA.opt.slow_leak(pub);
+      var json = await S.parse(data), pub = (pair).pub || pair, key = await SEA.opt.slow_leak(pub);
       var hash = (f <= SEA.opt.fallback)? shim.Buffer.from(await shim.subtle.digest({name: 'SHA-256'}, new shim.TextEncoder().encode(await S.parse(json.m)))) : await sha(json.m); // this line is old bad buggy code but necessary for old compatibility.
       var buf; var sig; var check; try{
         buf = shim.Buffer.from(json.s, opt.encode || 'base64') // NEW DEFAULT!
@@ -514,7 +514,6 @@
       return r;
     }
     SEA.opt.fallback = 2;
-
   })(USE, './verify');
 
   ;USE(function(module){
@@ -543,7 +542,7 @@
 
     SEA.encrypt = SEA.encrypt || (async (data, pair, cb, opt) => { try {
       opt = opt || {};
-      var key = (pair||opt).epriv || pair;
+      var key = ((pair||opt)).epriv || pair;
       if(u === data){ throw '`undefined` not allowed.' }
       if(!key){
         if(!SEA.I){ throw 'No encryption key.' }
@@ -583,7 +582,7 @@
 
     SEA.decrypt = SEA.decrypt || (async (data, pair, cb, opt) => { try {
       opt = opt || {};
-      var key = (pair||opt).epriv || pair;
+      var key = ((pair||opt)).epriv || pair;
       if(!key){
         if(!SEA.I){ throw 'No decryption key.' }
         pair = await SEA.I(null, {what: data, how: 'decrypt', why: opt.why});
@@ -605,7 +604,7 @@
         }
       }
       var raw = new shim.TextDecoder('utf8').decode(ct);
-      var r = opt.skipParse ? raw : await S.parse(raw);
+      var r = opt.skipParse ? raw  : await S.parse(raw);
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
     } catch(e) { 
@@ -630,7 +629,7 @@
         if(!SEA.I){ throw 'No secret mix.' }
         pair = await SEA.I(null, {what: key, how: 'secret', why: opt.why});
       }
-      var pub = key.epub || key;
+      var pub = (key).epub || key;
       var epub = pair.epub;
       var epriv = pair.epriv;
       var ecdhSubtle = shim.ossl || shim.subtle;
@@ -701,7 +700,7 @@
             })
           }
 
-          if (typeof certificants === 'object' && certificants.pub) return certificants.pub
+          if (typeof certificants === 'object' && (certificants).pub) return (certificants).pub
           return data.length > 0 ? data : null
         }
         return
@@ -710,8 +709,8 @@
       if (!certificants) return console.log("No certificant found.")
 
       const expiry = opt.expiry && (typeof opt.expiry === 'number' || typeof opt.expiry === 'string') ? parseFloat(opt.expiry) : null
-      const readPolicy = (policy || {}).read ? policy.read : null
-      const writePolicy = (policy || {}).write ? policy.write : typeof policy === 'string' || Array.isArray(policy) || policy["+"] || policy["#"] || policy["."] || policy["="] || policy["*"] || policy[">"] || policy["<"] ? policy : null
+      const readPolicy = ((policy || {})).read ? (policy).read : null
+      const writePolicy = ((policy || {})).write ? (policy).write : typeof policy === 'string' || Array.isArray(policy) || policy["+"] || policy["#"] || policy["."] || policy["="] || policy["*"] || policy[">"] || policy["<"] ? policy : null
       // The "blacklist" feature is now renamed to "block". Why ? BECAUSE BLACK LIVES MATTER!
       // We can now use 3 keys: block, blacklist, ban
       const block = (opt || {}).block || (opt || {}).blacklist || (opt || {}).ban || {}
@@ -814,32 +813,32 @@
     }
     SEA.GUN = Gun;
 
-    function User(root){ 
+    function User( root){ 
       this._ = {$: this};
     }
-    User.prototype = (function(){ function F(){}; F.prototype = Gun.chain; return new F() }()) // Object.create polyfill
+    User.prototype = (function(){ function F(){}; F.prototype = Gun.chain; return new (F)() }()) // Object.create polyfill
     User.prototype.constructor = User;
 
     // let's extend the gun chain with a `user` function.
     // only one user can be logged in at a time, per gun instance.
-    Gun.chain.user = function(pub){
+    Gun.chain.user = function( pub){
       var gun = this, root = gun.back(-1), user;
       if(pub){
-        pub = SEA.opt.pub((pub._||'')['#']) || pub;
+        pub = SEA.opt.pub(((pub)._||'')['#']) || pub;
         return root.get('~'+pub);
       }
       if(user = root.back('user')){ return user }
       var root = (root._), at = root, uuid = at.opt.uuid || lex;
-      (at = (user = at.user = gun.chain(new User))._).opt = {};
+      (at = (user = at.user = gun.chain(new (User)))._).opt = {};
       at.opt.uuid = function(cb){
-        var id = uuid(), pub = root.user;
+        var id = uuid(), pub = (root).user;
         if(!pub || !(pub = pub.is) || !(pub = pub.pub)){ return id }
         id = '~' + pub + '/' + id;
-        if(cb && cb.call){ cb(null, id) }
+        if(cb && (cb).call){ (cb)(null, id) }
         return id;
       }
       return user;
-    }
+    };
     function lex(){ return Gun.state().toString(36).replace('.','') }
     Gun.User = User;
     User.GUN = Gun;
@@ -849,12 +848,12 @@
 
   ;USE(function(module){
     var u, Gun = (''+u != typeof GUN)? (GUN||{chain:{}}) : USE((''+u === typeof MODULE?'.':'')+'./gun', 1);
-    Gun.chain.then = function(cb, opt){
+    Gun.chain.then = function( cb, opt){
       var gun = this, p = (new Promise(function(res, rej){
         gun.once(res, opt);
       }));
       return cb? p.then(cb) : p;
-    }
+    };
   })(USE, './then');
 
   ;USE(function(module){
@@ -866,7 +865,7 @@
       var alias = pair && (pair.pub || pair.epub) ? pair.pub : typeof args[0] === 'string' ? args[0] : null;
       var pass = pair && (pair.pub || pair.epub) ? pair : alias && typeof args[1] === 'string' ? args[1] : null;
       var cb = args.filter(arg => typeof arg === 'function')[0] || null; // cb now can stand anywhere, after alias/pass or pair
-      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1] : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
+      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1]  : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
       
       var gun = this, cat = (gun._), root = gun.back(-1);
       cb = cb || noop;
@@ -874,7 +873,7 @@
       if(false !== opt.check){
         var err;
         if(!alias){ err = "No user." }
-        if((pass||'').length < 8){ err = "Password too short!" }
+        if(((pass||'')).length < 8){ err = "Password too short!" }
         if(err){
           cb({err: Gun.log(err)});
           return gun;
@@ -970,7 +969,7 @@
       var alias = !pair && typeof args[0] === 'string' ? args[0] : null;
       var pass = (alias || (pair && !(pair.priv && pair.epriv))) && typeof args[1] === 'string' ? args[1] : null;
       var cb = args.filter(arg => typeof arg === 'function')[0] || null; // cb now can stand anywhere, after alias/pass or pair
-      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1] : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
+      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1]  : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
       var retries = 9;
       if(typeof opt.retries === 'number' && isFinite(opt.retries)){
         retries = Math.max(0, Math.floor(opt.retries));
@@ -1041,7 +1040,7 @@
         user.is = {pub: pair.pub, epub: pair.epub, alias: alias || pair.pub};
         at.sea = act.pair;
         cat.ing = false;
-        try{if(pass && u == (obj_ify(cat.root.graph['~'+pair.pub].auth)||'')[':']){ opt.shuffle = opt.change = pass; } }catch(e){} // migrate UTF8 & Shuffle!
+        try{if(pass && u == ((obj_ify(cat.root.graph['~'+pair.pub].auth)||''))[':']){ opt.shuffle = opt.change = pass; } }catch(e){} // migrate UTF8 & Shuffle!
         opt.change? act.z() : (cb || noop)(at);
         if(SEA.window && ((gun.back('user')._).opt||opt).remember){
           // TODO: this needs to be modular.
@@ -1295,7 +1294,7 @@
 
   ;USE(function(module){
     var SEA = USE('./sea'), S = USE('./settings'), noop = function() {}, u;
-    var Gun = (SEA.window||'').GUN || USE((''+u === typeof MODULE?'.':'')+'./gun', 1);
+    var Gun = ((SEA.window||'')).GUN || USE((''+u === typeof MODULE?'.':'')+'./gun', 1);
     // After we have a GUN extension to make user registration/login easy, we then need to handle everything else.
 
     // We do this with a GUN adapter, we first listen to when a gun instance is created (and when its options change)
@@ -1322,7 +1321,7 @@
     // This means we should ONLY trust our "friends" (our key ring) public keys, not any ones.
     // I have not yet added that to SEA yet in this alpha release. That is coming soon, but beware in the meanwhile!
 
-    function check(msg){ // REVISE / IMPROVE, NO NEED TO PASS MSG/EVE EACH SUB?
+    function check( msg){ // REVISE / IMPROVE, NO NEED TO PASS MSG/EVE EACH SUB?
       var eve = this, at = eve.as, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp;
       if(!soul || !key){ return }
       if((msg._||'').faith && (at.opt||'').faith && 'function' == typeof msg._){
@@ -1373,7 +1372,7 @@
           return eve.to.next(msg) }
         no("Data hash not same as hash!");
       }, {name: 'SHA-256'});
-    }
+    };
     check.alias = function(eve, msg, val, key, soul, at, no){ // Example: {_:#~@, ~@alice: {#~@alice}}
       if(!val){ return no("Data must exist!") } // data MUST exist
       if('~@'+key === link_is(val)){ return eve.to.next(msg) } // in fact, it must be EXACTLY equal to itself
@@ -1425,18 +1424,18 @@
         return no("Account not same!")
       }
 
-      if ((tmp = user.is) && tmp.pub && !raw['*'] && !raw['+'] && (pub === tmp.pub || (pub !== tmp.pub && ((msg._.msg || {}).opt || {}).cert))){
+      if ((tmp = (user).is) && tmp.pub && !raw['*'] && !raw['+'] && (pub === tmp.pub || (pub !== tmp.pub && ((msg._.msg || {}).opt || {}).cert))){
         SEA.opt.pack(msg.put, packed => {
-          SEA.sign(packed, (user._).sea, async function(data) {
-            if (u === data) return no(SEA.err || 'Signature fail.')
+          SEA.sign(packed, ((user)._).sea, async function(data) {
+            if (u === data) return no(SEA.err  || 'Signature fail.')
             msg.put[':'] = {':': tmp = SEA.opt.unpack(data.m), '~': data.s}
             msg.put['='] = tmp
   
             // if writing to own graph, just allow it
-            if (pub === user.is.pub) {
+            if (pub === (user).is.pub) {
               if (tmp = link_is(val)) (at.sea.own[tmp] = at.sea.own[tmp] || {})[pub] = 1
               JSON.stringifyAsync(msg.put[':'], function(err,s){
-                if(err){ return no(err || "Stringify error.") }
+                if(err){ return no(err  || "Stringify error.") }
                 msg.put[':'] = s;
                 return eve.to.next(msg);
               })
@@ -1444,15 +1443,15 @@
             }
   
             // if writing to other's graph, check if cert exists then try to inject cert into put, also inject self pub so that everyone can verify the put
-            if (pub !== user.is.pub && ((msg._.msg || {}).opt || {}).cert) {
+            if (pub !== (user).is.pub && ((msg._.msg || {}).opt || {}).cert) {
               const cert = await S.parse(msg._.msg.opt.cert)
               // even if cert exists, we must verify it
               if (cert && cert.m && cert.s)
-                verify(cert, user.is.pub, _ => {
+                verify(cert, (user).is.pub, _ => {
                   msg.put[':']['+'] = cert // '+' is a certificate
-                  msg.put[':']['*'] = user.is.pub // '*' is pub of the user who puts
+                  msg.put[':']['*'] = (user).is.pub // '*' is pub of the user who puts
                   JSON.stringifyAsync(msg.put[':'], function(err,s){
-                    if(err){ return no(err || "Stringify error.") }
+                    if(err){ return no(err  || "Stringify error.") }
                     msg.put[':'] = s;
                     return eve.to.next(msg);
                   })
@@ -1488,19 +1487,19 @@
     check.any = function(eve, msg, val, key, soul, at, no, user){ var tmp, pub;
       if(at.opt.secure){ return no("Soul missing public key at '" + key + "'.") }
       // TODO: Ask community if should auto-sign non user-graph data.
-      at.on('secure', function(msg){ this.off();
+      (at.on('secure', function(msg){ this.off();
         if(!at.opt.secure){ return eve.to.next(msg) }
         no("Data cannot be changed.");
-      }).on.on('secure', msg);
+      }).on).on('secure', msg);
       return;
-    }
+    };
 
-    var valid = Gun.valid, link_is = function(d,l){ return 'string' == typeof (l = valid(d)) && l }, state_ify = (Gun.state||'').ify;
+    var valid = Gun.valid, link_is = function(d, l){ return 'string' == typeof (l = valid(d)) && l }, state_ify = (Gun.state||'').ify;
 
     var pubcut = /[^\w_-]/; // anything not alphanumeric or _ -
     SEA.opt.pub = function(s){
       if(!s){ return }
-      s = s.split('~');
+      s = (s).split('~');
       if(!s || !(s = s[1])){ return }
       s = s.split(pubcut).slice(0,2);
       if(!s || 2 != s.length){ return }
@@ -1514,7 +1513,7 @@
     SEA.opt.pack = function(d,cb,k, n,s){ var tmp, f; // pack for verifying
       if(SEA.opt.check(d)){ return cb(d) }
       if(d && d['#'] && d['.'] && d['>']){ tmp = d[':']; f = 1 }
-      JSON.parseAsync(f? tmp : d, function(err, meta){
+      JSON.parseAsync((f? tmp : d), function(err, meta){
         var sig = ((u !== (meta||'')[':']) && (meta||'')['~']); // or just ~ check?
         if(!sig){ cb(d); return }
         cb({m: {'#':s||d['#'],'.':k||d['.'],':':(meta||'')[':'],'>':d['>']||Gun.state.is(n, k)}, s: sig});
@@ -1539,6 +1538,6 @@
     SEA.opt.shuffle_attack = 1546329600000; // Jan 1, 2019
     var fl = Math.floor; // TODO: Still need to fix inconsistent state issue.
     // TODO: Potential bug? If pub/priv key starts with `-`? IDK how possible.
-
   })(USE, './index');
+
 }());

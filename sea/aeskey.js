@@ -14,5 +14,5 @@
       return await shim.subtle.importKey('jwk', jwkKey, {name:'AES-GCM'}, false, ['encrypt', 'decrypt'])
     }
     module.exports = importGen;
-  
+
 }());

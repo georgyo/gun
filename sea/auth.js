@@ -7,7 +7,7 @@
       var alias = !pair && typeof args[0] === 'string' ? args[0] : null;
       var pass = (alias || (pair && !(pair.priv && pair.epriv))) && typeof args[1] === 'string' ? args[1] : null;
       var cb = args.filter(arg => typeof arg === 'function')[0] || null; // cb now can stand anywhere, after alias/pass or pair
-      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1] : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
+      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1]  : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
       var retries = 9;
       if(typeof opt.retries === 'number' && isFinite(opt.retries)){
         retries = Math.max(0, Math.floor(opt.retries));
@@ -78,7 +78,7 @@
         user.is = {pub: pair.pub, epub: pair.epub, alias: alias || pair.pub};
         at.sea = act.pair;
         cat.ing = false;
-        try{if(pass && u == (obj_ify(cat.root.graph['~'+pair.pub].auth)||'')[':']){ opt.shuffle = opt.change = pass; } }catch(e){} // migrate UTF8 & Shuffle!
+        try{if(pass && u == ((obj_ify(cat.root.graph['~'+pair.pub].auth)||''))[':']){ opt.shuffle = opt.change = pass; } }catch(e){} // migrate UTF8 & Shuffle!
         opt.change? act.z() : (cb || noop)(at);
         if(SEA.window && ((gun.back('user')._).opt||opt).remember){
           // TODO: this needs to be modular.
@@ -163,5 +163,5 @@
       }catch(e){o={}};
       return o;
     }
-  
+
 }());

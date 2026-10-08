@@ -51,21 +51,21 @@
 			}, p);
 		}
 		function put(file, data, cb){
-			put[file = fname(file)] = { data: data };
+			(put)[file = fname(file)] = { data: data };
 			RAD.put(file, data, function(err, ok){
-				delete put[file];
+				delete (put)[file];
 				cb && cb(err, ok);
 			}, opt);
 		};
-		function get(file, cb){
+		 function get(file, cb){
 			var tmp;
 			if(!file){ return } // TODO: HANDLE ERROR!!
 			if(file.from){ cb(null, file.from); return }
-			if(b&&1==b.list.length){ file.first = (file.first < '!')? file.first : '!'; } // TODO: BUG!!!! This cleanly makes for a common first file, but SAVING INVISIBLE ASCII KEYS IS COMPLETELY UNTESTED and guaranteed to have bugs/corruption issues.
-			if(tmp = put[file = fname(file)]){ cb(u, tmp.data); return }
-			if(tmp = get[file]){ tmp.push(cb); return } get[file] = [cb];
+			if(b&&1==b.list.length){ file.first = (file.first  < '!')? file.first : '!'; } // TODO: BUG!!!! This cleanly makes for a common first file, but SAVING INVISIBLE ASCII KEYS IS COMPLETELY UNTESTED and guaranteed to have bugs/corruption issues.
+			if(tmp = (put)[file = fname(file)]){ cb(u, tmp.data); return }
+			if(tmp = (get)[file]){ tmp.push(cb); return } (get)[file] = [cb];
 			RAD.get(file, function(err, data){
-				tmp = get[file]||''; delete get[file];
+				tmp = (get)[file]||''; delete (get)[file];
 				sT.each(tmp, function(cb){ cb && cb(err, data) });
 			}, opt);
 		};
@@ -76,12 +76,12 @@
 				if(err){ log('ERR! in start() get()', err); reply && reply(err); return }
 				if(b){ r(word, is, reply); return }
 				b = r.book = Book();
-				if((d = Book.slot(d)).length){ b.list = d } // TODO: BUG! Add some other sort of corrupted/error check here?
-				watch(b).parse = function(t){ return ('string' == typeof t)? Book.decode(Book.slot(t)[0]) : t } // TODO: This was ugly temporary, but is necessary, and is logically correct, but is there a cleaner, nicer, less assumptiony way to do it? // TODO: SOLUTION?! I think this needs to be in Book, not RAD.
+				if((d = Book.slot(d)).length){ b.list = d; } // TODO: BUG! Add some other sort of corrupted/error check here?
+				watch(b).parse = function(t){ return ('string' == typeof t)? Book.decode(Book.slot(t)[0])  : t } // TODO: This was ugly temporary, but is necessary, and is logically correct, but is there a cleaner, nicer, less assumptiony way to do it? // TODO: SOLUTION?! I think this needs to be in Book, not RAD.
 				r(word, is, reply);
 			})
 		}
-		function watch(b){ // SPLIT LOGIC!
+		function watch(b) { // SPLIT LOGIC!
 			var split = b.split;
 			b.list.toString = function(){
 				//console.time();
@@ -157,7 +157,7 @@
 	RAD.get = function(file, cb, opt){
 		fs.readFile(opt.file+'/'+file, function(err, data){
 			if(err && 'ENOENT' === (err.code||'').toUpperCase()){ return cb() }
-			cb(err, (data||'').toString()||data);
+			cb(err, ((data||'').toString()||data));
 		});
 	}
 }());
@@ -191,7 +191,7 @@
 	RAD.put = function(file, data, cb, opt){ put && put(file, data, cb, opt);
 		cb(401)
 	}
-	RAD.get = async function(file, cb, opt){ get && get(file, cb, opt);
+	RAD.get = async function(file, cb, opt){ get && (get)(file, cb, opt);
 		var t = (await (await fetch('http://localhost:8765/gun/authorsData/'+file)).text());
 		if('404' == t){ cb(); return }
 		cb(null, t);

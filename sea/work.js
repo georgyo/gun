@@ -7,7 +7,7 @@
     var u;
 
     SEA.work = SEA.work || (async (data, pair, cb, opt) => { try { // used to be named `proof`
-      var salt = (pair||{}).epub || pair; // epub not recommended, salt should be random!
+      var salt = ((pair||{})).epub || pair; // epub not recommended, salt should be random!
       opt = opt || {};
       if(salt instanceof Function){
         cb = salt;
@@ -24,10 +24,10 @@
       var work = await (shim.ossl || shim.subtle).deriveBits({
         name: opt.name || 'PBKDF2',
         iterations: opt.iterations || S.pbkdf2.iter,
-        salt: new shim.TextEncoder().encode(opt.salt || salt),
+        salt: new shim.TextEncoder().encode((opt.salt || salt)),
         hash: opt.hash || S.pbkdf2.hash,
       }, key, opt.length || (S.pbkdf2.ks * 8))
-      data = shim.random(data.length)  // Erase data in case of passphrase
+      data = shim.random((data).length)  // Erase data in case of passphrase
       var r = shim.Buffer.from(work, 'binary').toString(opt.encode || 'base64')
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
@@ -40,5 +40,5 @@
     }});
 
     module.exports = SEA.work;
-  
+
 }());

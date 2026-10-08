@@ -7,7 +7,7 @@
 
     SEA.decrypt = SEA.decrypt || (async (data, pair, cb, opt) => { try {
       opt = opt || {};
-      var key = (pair||opt).epriv || pair;
+      var key = ((pair||opt)).epriv || pair;
       if(!key){
         if(!SEA.I){ throw 'No decryption key.' }
         pair = await SEA.I(null, {what: data, how: 'decrypt', why: opt.why});
@@ -29,7 +29,7 @@
         }
       }
       var raw = new shim.TextDecoder('utf8').decode(ct);
-      var r = opt.skipParse ? raw : await S.parse(raw);
+      var r = opt.skipParse ? raw  : await S.parse(raw);
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
     } catch(e) { 
@@ -41,5 +41,5 @@
     }});
 
     module.exports = SEA.decrypt;
-  
+
 }());

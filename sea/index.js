@@ -1,7 +1,7 @@
 ;(function(){
 
     var SEA = require('./sea'), S = require('./settings'), noop = function() {}, u;
-    var Gun = (SEA.window||'').GUN || require((''+u === typeof MODULE?'.':'')+'./gun', 1);
+    var Gun = ((SEA.window||'')).GUN || require((''+u === typeof MODULE?'.':'')+'./gun', 1);
     // After we have a GUN extension to make user registration/login easy, we then need to handle everything else.
 
     // We do this with a GUN adapter, we first listen to when a gun instance is created (and when its options change)
@@ -28,7 +28,7 @@
     // This means we should ONLY trust our "friends" (our key ring) public keys, not any ones.
     // I have not yet added that to SEA yet in this alpha release. That is coming soon, but beware in the meanwhile!
 
-    function check(msg){ // REVISE / IMPROVE, NO NEED TO PASS MSG/EVE EACH SUB?
+    function check( msg){ // REVISE / IMPROVE, NO NEED TO PASS MSG/EVE EACH SUB?
       var eve = this, at = eve.as, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp;
       if(!soul || !key){ return }
       if((msg._||'').faith && (at.opt||'').faith && 'function' == typeof msg._){
@@ -79,7 +79,7 @@
           return eve.to.next(msg) }
         no("Data hash not same as hash!");
       }, {name: 'SHA-256'});
-    }
+    };
     check.alias = function(eve, msg, val, key, soul, at, no){ // Example: {_:#~@, ~@alice: {#~@alice}}
       if(!val){ return no("Data must exist!") } // data MUST exist
       if('~@'+key === link_is(val)){ return eve.to.next(msg) } // in fact, it must be EXACTLY equal to itself
@@ -131,18 +131,18 @@
         return no("Account not same!")
       }
 
-      if ((tmp = user.is) && tmp.pub && !raw['*'] && !raw['+'] && (pub === tmp.pub || (pub !== tmp.pub && ((msg._.msg || {}).opt || {}).cert))){
+      if ((tmp = (user).is) && tmp.pub && !raw['*'] && !raw['+'] && (pub === tmp.pub || (pub !== tmp.pub && ((msg._.msg || {}).opt || {}).cert))){
         SEA.opt.pack(msg.put, packed => {
-          SEA.sign(packed, (user._).sea, async function(data) {
-            if (u === data) return no(SEA.err || 'Signature fail.')
+          SEA.sign(packed, ((user)._).sea, async function(data) {
+            if (u === data) return no(SEA.err  || 'Signature fail.')
             msg.put[':'] = {':': tmp = SEA.opt.unpack(data.m), '~': data.s}
             msg.put['='] = tmp
   
             // if writing to own graph, just allow it
-            if (pub === user.is.pub) {
+            if (pub === (user).is.pub) {
               if (tmp = link_is(val)) (at.sea.own[tmp] = at.sea.own[tmp] || {})[pub] = 1
               JSON.stringifyAsync(msg.put[':'], function(err,s){
-                if(err){ return no(err || "Stringify error.") }
+                if(err){ return no(err  || "Stringify error.") }
                 msg.put[':'] = s;
                 return eve.to.next(msg);
               })
@@ -150,15 +150,15 @@
             }
   
             // if writing to other's graph, check if cert exists then try to inject cert into put, also inject self pub so that everyone can verify the put
-            if (pub !== user.is.pub && ((msg._.msg || {}).opt || {}).cert) {
+            if (pub !== (user).is.pub && ((msg._.msg || {}).opt || {}).cert) {
               const cert = await S.parse(msg._.msg.opt.cert)
               // even if cert exists, we must verify it
               if (cert && cert.m && cert.s)
-                verify(cert, user.is.pub, _ => {
+                verify(cert, (user).is.pub, _ => {
                   msg.put[':']['+'] = cert // '+' is a certificate
-                  msg.put[':']['*'] = user.is.pub // '*' is pub of the user who puts
+                  msg.put[':']['*'] = (user).is.pub // '*' is pub of the user who puts
                   JSON.stringifyAsync(msg.put[':'], function(err,s){
-                    if(err){ return no(err || "Stringify error.") }
+                    if(err){ return no(err  || "Stringify error.") }
                     msg.put[':'] = s;
                     return eve.to.next(msg);
                   })
@@ -194,19 +194,19 @@
     check.any = function(eve, msg, val, key, soul, at, no, user){ var tmp, pub;
       if(at.opt.secure){ return no("Soul missing public key at '" + key + "'.") }
       // TODO: Ask community if should auto-sign non user-graph data.
-      at.on('secure', function(msg){ this.off();
+      (at.on('secure', function(msg){ this.off();
         if(!at.opt.secure){ return eve.to.next(msg) }
         no("Data cannot be changed.");
-      }).on.on('secure', msg);
+      }).on).on('secure', msg);
       return;
-    }
+    };
 
-    var valid = Gun.valid, link_is = function(d,l){ return 'string' == typeof (l = valid(d)) && l }, state_ify = (Gun.state||'').ify;
+    var valid = Gun.valid, link_is = function(d, l){ return 'string' == typeof (l = valid(d)) && l }, state_ify = (Gun.state||'').ify;
 
     var pubcut = /[^\w_-]/; // anything not alphanumeric or _ -
     SEA.opt.pub = function(s){
       if(!s){ return }
-      s = s.split('~');
+      s = (s).split('~');
       if(!s || !(s = s[1])){ return }
       s = s.split(pubcut).slice(0,2);
       if(!s || 2 != s.length){ return }
@@ -220,7 +220,7 @@
     SEA.opt.pack = function(d,cb,k, n,s){ var tmp, f; // pack for verifying
       if(SEA.opt.check(d)){ return cb(d) }
       if(d && d['#'] && d['.'] && d['>']){ tmp = d[':']; f = 1 }
-      JSON.parseAsync(f? tmp : d, function(err, meta){
+      JSON.parseAsync((f? tmp : d), function(err, meta){
         var sig = ((u !== (meta||'')[':']) && (meta||'')['~']); // or just ~ check?
         if(!sig){ cb(d); return }
         cb({m: {'#':s||d['#'],'.':k||d['.'],':':(meta||'')[':'],'>':d['>']||Gun.state.is(n, k)}, s: sig});
@@ -246,5 +246,4 @@
     var fl = Math.floor; // TODO: Still need to fix inconsistent state issue.
     // TODO: Potential bug? If pub/priv key starts with `-`? IDK how possible.
 
-  
 }());

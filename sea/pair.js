@@ -59,7 +59,7 @@
         else { throw e }
       } dh = dh || {};
 
-      var r = { pub: sa.pub, priv: sa.priv, /* pubId, */ epub: dh.epub, epriv: dh.epriv }
+      var r = { pub: sa.pub, priv: sa.priv, /* pubId, */ epub: dh.epub, epriv: dh.epriv };
       if(cb){ try{ cb(r) }catch(e){console.log(e)} }
       return r;
     } catch(e) {
@@ -71,5 +71,5 @@
     }});
 
     module.exports = SEA.pair;
-  
+
 }());

@@ -5,7 +5,7 @@
     function SeaArray() {}
     Object.assign(SeaArray, { from: Array.from })
     SeaArray.prototype = Object.create(Array.prototype)
-    SeaArray.prototype.toString = function(enc, start, end) { enc = enc || 'utf8'; start = start || 0;
+    SeaArray.prototype.toString = function( enc, start, end) { enc = enc || 'utf8'; start = start || 0;
       const length = this.length
       if (enc === 'hex') {
         const buf = new Uint8Array(this)
@@ -23,5 +23,5 @@
       }
     }
     module.exports = SeaArray;
-  
+
 }());

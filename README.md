@@ -215,6 +215,10 @@ This would not be possible without **community contributors**, big shout out to:
 
 I am missing many others, apologies, will be adding them soon! This list is infinitely old & way out of date, if you want to be listed in it please make a PR! :)
 
+## Development
+
+GUN's source is TypeScript (`src/*.ts`, `sea/*.ts`, `lib/*.ts`, ...). The published JavaScript (`gun.js`, `sea.js`, `lib/*.js`, ...) is generated from it and committed, so CDN links and `<script>` tags work as before. Edit the `.ts` files, then run `npm run build` (Node.js 22+) and `npm run typecheck`. See [TYPESCRIPT.md](TYPESCRIPT.md) for how the build works and the conventions.
+
 ## Testing
 
 You will need to `npm install -g mocha` first. Then in the gun root folder run `npm test`. Tests will trigger persistent writes to the DB, so subsequent runs of the test will fail. You must clear the DB before running the tests again. This can be done by running `rm -rf *data*` command in the project directory.

@@ -8,7 +8,7 @@
       var alias = pair && (pair.pub || pair.epub) ? pair.pub : typeof args[0] === 'string' ? args[0] : null;
       var pass = pair && (pair.pub || pair.epub) ? pair : alias && typeof args[1] === 'string' ? args[1] : null;
       var cb = args.filter(arg => typeof arg === 'function')[0] || null; // cb now can stand anywhere, after alias/pass or pair
-      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1] : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
+      var opt = args && args.length > 1 && typeof args[args.length-1] === 'object' ? args[args.length-1]  : {}; // opt is always the last parameter which typeof === 'object' and stands after cb
       
       var gun = this, cat = (gun._), root = gun.back(-1);
       cb = cb || noop;
@@ -16,7 +16,7 @@
       if(false !== opt.check){
         var err;
         if(!alias){ err = "No user." }
-        if((pass||'').length < 8){ err = "Password too short!" }
+        if(((pass||'')).length < 8){ err = "Password too short!" }
         if(err){
           cb({err: Gun.log(err)});
           return gun;
@@ -102,5 +102,5 @@
       }
       return gun;
     }
-  
+
 }());

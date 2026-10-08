@@ -1,25 +1,25 @@
 ;(function(){
-                                                                                                                                                                                                                                                                                                                                                                                 
-                                                                                                           
-function Gun(             o                  )       {
-	if(o instanceof Gun){ return (this._ = {$: this}             ).$ }
-	if(!(this instanceof Gun)){ return new (Gun             )(o) }
-	return Gun.create(this._ = {$: this, opt: o}            );
+
+
+function Gun( o){
+	if(o instanceof Gun){ return (this._ = {$: this}).$ }
+	if(!(this instanceof Gun)){ return new (Gun)(o) }
+	return Gun.create(this._ = {$: this, opt: o});
 }
 
-Gun.is = function($         ){ return ($ instanceof Gun) || ($ && ($                  )._ && ($ === ($         )._.$)) || false };                  
+Gun.is = function($){ return ($ instanceof Gun) || ($ && ($)._ && ($ === ($)._.$)) || false };
 
 Gun.version = 0.2020;
 
-Gun.chain = Gun.prototype         ;
+Gun.chain = Gun.prototype;
 Gun.chain.toJSON = function(){};
 
 require('./shim');
-Gun.valid = require('./valid')         ;
-Gun.state = require('./state')           ;
-Gun.on = require('./onto')         ;
-Gun.dup = require('./dup')              ;
-Gun.ask = require('./ask')       ;
+Gun.valid = require('./valid');
+Gun.state = require('./state');
+Gun.on = require('./onto');
+Gun.dup = require('./dup');
+Gun.ask = require('./ask');
 
 ;(function(){
 	Gun.create = function(at){
@@ -39,21 +39,21 @@ Gun.ask = require('./ask')       ;
 		at.once = 1;
 		return gun;
 	}
-	function universe(                                   msg     ){
+	function universe( msg){
 		// TODO: BUG! msg.out = null being set!
 		//if(!F){ var eve = this; setTimeout(function(){ universe.call(eve, msg,1) },Math.random() * 100);return; } // ADD F TO PARAMS!
 		if(!msg){ return }
 		if(msg.out === universe){ this.to.next(msg); return }
-		var eve = this, as = eve.as, at = (as                   ).at || as, gun = at.$, dup = at.dup, tmp                             , DBG = msg.DBG;
+		var eve = this, as = eve.as, at = (as).at || as, gun = at.$, dup = at.dup, tmp, DBG = msg.DBG;
 		(tmp = msg['#']) || (tmp = msg['#'] = text_rand(9));
 		if(dup.check(tmp)){ return } dup.track(tmp);
-		tmp = msg._; msg._ = ('function' == typeof tmp)? tmp : function(){}           ;
+		tmp = msg._; msg._ = ('function' == typeof tmp)? tmp : function(){};
 		(msg.$ && (msg.$ === (msg.$._||'').$)) || (msg.$ = gun);
 		if(msg['@'] && !msg.put){ ack(msg) }
 		if(!at.ask(msg['@'], msg)){ // is this machine listening for an ack?
 			DBG && (DBG.u = +new Date);
 			if(msg.put){ put(msg); return } else
-			if(msg.get){ Gun.on.get(msg          , gun) }
+			if(msg.get){ Gun.on.get(msg, gun) }
 		}
 		DBG && (DBG.uc = +new Date);
 		eve.to.next(msg);
@@ -62,16 +62,16 @@ Gun.ask = require('./ask')       ;
 		msg.out = universe; at.on('out', msg);
 		DBG && (DBG.ue = +new Date);
 	}
-	function put(msg     ){
+	function put(msg){
 		if(!msg){ return }
-		var ctx = (msg._||'')           , root = ctx.root = ((((ctx.$ = msg.$||'')                  )._||'')                    ).root ;
+		var ctx = (msg._||''), root = ctx.root = ((((ctx.$ = msg.$||''))._||'')).root;
 		if(msg['@'] && ctx.faith && !ctx.miss){ // TODO: AXE may split/route based on 'put' what should we do here? Detect @ in AXE? I think we don't have to worry, as DAM will route it on @.
 			msg.out = universe;
 			root.on('out', msg);
 			return;
 		}
 		ctx.latch = root.hatch; ctx.match = root.hatch = [];
-		var put = msg.put ;
+		var put = msg.put;
 		var DBG = ctx.DBG = msg.DBG, S = +new Date; CT = CT || S;
 		if(put['#'] && put['.']){ /*root && root.on('put', msg);*/ return } // TODO: BUG! This needs to call HAM instead.
 		DBG && (DBG.p = S);
@@ -81,8 +81,8 @@ Gun.ask = require('./ask')       ;
 		ctx.stun = 1;
 		var nl = Object.keys(put);//.sort(); // TODO: This is unbounded operation, large graphs will be slower. Write our own CPU scheduled sort? Or somehow do it in below? Keys itself is not O(1) either, create ES5 shim over ?weak map? or custom which is constant.
 		console.STAT && console.STAT(S, ((DBG||ctx).pk = +new Date) - S, 'put sort');
-		var ni = 0, nj                    , kl                 , soul                  , node                     , states                      , err                    , tmp                      ;
-		(function pop(o         ){
+		var ni = 0, nj, kl, soul, node, states, err, tmp;
+		(function pop(o){
 			if(nj != ni){ nj = ni;
 				if(!(soul = nl[ni])){
 					console.STAT && console.STAT(S, ((DBG||ctx).pd = +new Date) - S, 'put');
@@ -101,29 +101,29 @@ Gun.ask = require('./ask')       ;
 				//console.log("handle error!", err) // handle!
 				return;
 			}
-			var i = 0, key                    ; o = o || 0;
-			while(o++ < 9 && (key = kl [i++])){
+			var i = 0, key; o = o || 0;
+			while(o++ < 9 && (key = kl[i++])){
 				if('_' === key){ continue }
-				var val = node [key], state = states [key];
+				var val = node[key], state = states[key];
 				if(u === state){ err = ERR+cut(key)+"on"+cut(soul)+"no state."; break }
 				if(!valid(val)){ err = ERR+cut(key)+"on"+cut(soul)+"bad "+(typeof val)+cut(val); break }
 				//ctx.all++; //ctx.ack[soul+key] = '';
-				ham(val            , key, soul , state, msg);
+				ham(val, key, soul, state, msg);
 				++C; // courtesy count;
 			}
-			if((kl = kl .slice(i)).length){ turn(pop); return }
+			if((kl = kl.slice(i)).length){ turn(pop); return }
 			++ni; kl = null; pop(o);
 		}());
 	} Gun.on.put = put;
 	// TODO: MARK!!! clock below, reconnect sync, SEA certify wire merge, User.auth taking multiple times, // msg put, put, say ack, hear loop...
 	// WASIS BUG! local peer not ack. .off other people: .open
-	function ham(val          , key        , soul      , state          , msg     ){
-		var ctx = (msg._||'')           , root = ctx.root , graph = root.graph, lot           , tmp                                  ;
+	function ham(val, key, soul, state, msg){
+		var ctx = (msg._||''), root = ctx.root, graph = root.graph, lot, tmp;
 		var vertex = graph[soul] || empty, was = state_is(vertex, key, 1), known = vertex[key];
 		
 		var DBG = ctx.DBG; if(tmp = console.STAT){ if(!graph[soul] || !known){ tmp.has = (tmp.has || 0) + 1 } }
 
-		var now = State(), u           ;
+		var now = State(), u;
 		if(state > now){
 			setTimeout(function(){ ham(val, key, soul, state, msg) }, (tmp = state - now) > MD? MD : tmp); // Max Defer 32bit. :(
 			console.STAT && console.STAT(((DBG||ctx).Hf = +new Date), tmp, 'future');
@@ -133,19 +133,19 @@ Gun.ask = require('./ask')       ;
 		if(!ctx.faith){ // TODO: BUG? Can this be used for cache miss as well? // Yes this was a bug, need to check cache miss for RAD tests, but should we care about the faith check now? Probably not.
 			if(state === was && (val === known || L(val) <= L(known))){ /*console.log("same");*/ /*same;*/ if(!ctx.miss){ return } } // same
 		}
-		ctx.stun ++; // TODO: 'forget' feature in SEA tied to this, bad approach, but hacked in for now. Any changes here must update there.
-		var aid = (msg['#']          )+ctx.all ++, id        = {toString: function(){ return aid }, _: ctx}; id.toJSON = id.toString; // this *trick* makes it compatible between old & new versions.
+		ctx.stun++; // TODO: 'forget' feature in SEA tied to this, bad approach, but hacked in for now. Any changes here must update there.
+		var aid = (msg['#'])+ctx.all++, id = {toString: function(){ return aid }, _: ctx}; id.toJSON = id.toString; // this *trick* makes it compatible between old & new versions.
 		root.dup.track(id)['#'] = msg['#']; // fixes new OK acks for RPC like RTC.
 		DBG && (DBG.ph = DBG.ph || +new Date);
 		root.on('put', {'#': id, '@': msg['@'], put: {'#': soul, '.': key, ':': val, '>': state}, ok: msg.ok, _: ctx});
 	}
-	function map(                                      msg        ){
-		var DBG                   ; if(DBG = (msg._||'').DBG){ DBG.pa = +new Date; DBG.pm = DBG.pm || +new Date}
-      	var eve = this, root = eve.as, graph = root.graph, ctx = msg._, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp                                                  ;
-      	if((tmp = ctx.msg) && (tmp = tmp.put) && (tmp = (tmp            )[soul])){ state_ify(tmp, key, state, val, soul) } // necessary! or else out messages do not get SEA transforms.
+	function map( msg){
+		var DBG; if(DBG = (msg._||'').DBG){ DBG.pa = +new Date; DBG.pm = DBG.pm || +new Date}
+      	var eve = this, root = eve.as, graph = root.graph, ctx = msg._, put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], id = msg['#'], tmp;
+      	if((tmp = ctx.msg) && (tmp = tmp.put) && (tmp = (tmp)[soul])){ state_ify(tmp, key, state, val, soul) } // necessary! or else out messages do not get SEA transforms.
       	//var bytes = ((graph[soul]||'')[key]||'').length||1;
 		graph[soul] = state_ify(graph[soul], key, state, val, soul);
-		if(tmp = ((root.next||'')                   )[soul]){
+		if(tmp = ((root.next||''))[soul]){
 			//tmp.bytes = (tmp.bytes||0) + ((val||'').length||1) - bytes;
 			//if(tmp.bytes > 2**13){ Gun.log.once('byte-limit', "Note: In the future, GUN peers will enforce a ~4KB query limit. Please see https://gun.eco/docs/Page") }
 			tmp.on('in', msg)
@@ -153,26 +153,26 @@ Gun.ask = require('./ask')       ;
 		fire(ctx);
 		eve.to.next(msg);
 	}
-	function fire(ctx         , msg      ){ var root                      ;
+	function fire(ctx, msg){ var root;
 		if(ctx.stop){ return }
-		if(!ctx.err && 0 < --ctx.stun ){ return } // TODO: 'forget' feature in SEA tied to this, bad approach, but hacked in for now. Any changes here must update there.
+		if(!ctx.err && 0 < --ctx.stun){ return } // TODO: 'forget' feature in SEA tied to this, bad approach, but hacked in for now. Any changes here must update there.
 		ctx.stop = 1;
 		if(!(root = ctx.root)){ return }
-		var tmp = ctx.match; tmp .end = 1;
+		var tmp = ctx.match; tmp.end = 1;
 		if(tmp === root.hatch){ if(!(tmp = ctx.latch) || tmp.end){ delete root.hatch } else { root.hatch = tmp } }
 		ctx.hatch && ctx.hatch(); // TODO: rename/rework how put & this interact.
 		setTimeout.each(ctx.match, function(cb){cb && cb()}); 
 		if(!(msg = ctx.msg) || ctx.err || msg.err){ return }
 		msg.out = universe;
-		ctx.root .on('out', msg);
+		ctx.root.on('out', msg);
 
 		CF(); // courtesy check;
 	}
-	function ack(msg     ){ // aggregate ACKs.
-		var id = msg['@'] || '', ctx                     , ok           , tmp           ;
-		if(!(ctx = (id                  )._)){
-			var dup                                                       = (dup = msg.$) && (dup = dup._) && (dup = dup.root) && (dup = dup.dup);
-			if(!(dup = dup .check(id))){ return }
+	function ack(msg){ // aggregate ACKs.
+		var id = msg['@'] || '', ctx, ok, tmp;
+		if(!(ctx = (id)._)){
+			var dup = (dup = msg.$) && (dup = dup._) && (dup = dup.root) && (dup = dup.dup);
+			if(!(dup = dup.check(id))){ return }
 			msg['@'] = dup['#'] || msg['@']; // This doesn't do anything anymore, backtrack it to something else?
 			return;
 		}
@@ -185,22 +185,22 @@ Gun.ask = require('./ask')       ;
 		if(!ctx.stop && !ctx.crack){ ctx.crack = ctx.match && ctx.match.push(function(){back(ctx)}) } // handle synchronous acks. NOTE: If a storage peer ACKs synchronously then the PUT loop has not even counted up how many items need to be processed, so ctx.STOP flags this and adds only 1 callback to the end of the PUT loop.
 		back(ctx);
 	}
-	function back(ctx          ){
+	function back(ctx){
 		if(!ctx || !ctx.root){ return }
 		if(ctx.stun || ctx.acks !== ctx.all){ return }
 		ctx.root.on('in', {'@': ctx['#'], err: ctx.err, ok: ctx.err? u : ctx.ok || {'':1}});
 	}
 
 	var ERR = "Error: Invalid graph!";
-	var cut = function(s         ){ return " '"+(''+s).slice(0,9)+"...' " }
+	var cut = function(s){ return " '"+(''+s).slice(0,9)+"...' " }
 	var L = JSON.stringify, MD = 2147483647, State = Gun.state;
-	var C = 0, CT                    , CF = function(){if(C>999 && (C/-(CT  - (CT = +new Date))>1)){Gun.window && console.log("Warning: You're syncing 1K+ records a second, faster than DOM can update - consider limiting query.");CF=function(){C=0}}};
+	var C = 0, CT, CF = function(){if(C>999 && (C/-(CT - (CT = +new Date))>1)){Gun.window && console.log("Warning: You're syncing 1K+ records a second, faster than DOM can update - consider limiting query.");CF=function(){C=0}}};
 
 }());
 
 ;(function(){
 	Gun.on.get = function(msg, gun){
-		var root = gun._, get = msg.get, soul = get['#']                                                                              , node = root.graph[soul], has = get['.'];
+		var root = gun._, get = msg.get, soul = get['#'], node = root.graph[soul], has = get['.'];
 		var next = root.next || (root.next = {}), at = next[soul];
 
 		// TODO: Azarattum bug, what is in graph is not same as what is in next. Fix!
@@ -231,9 +231,9 @@ Gun.ask = require('./ask')       ;
 		if(!node){ return root.on('get', msg) }
 		if(has){
 			if('string' != typeof has || u === node[has]){
-				if(!((((at||'')                      ).next||'')                   )[has                                                                                   ]){ root.on('get', msg); return }
+				if(!((((at||'')).next||''))[has]){ root.on('get', msg); return }
 			}
-			node = state_ify({}, has                                               , state_is(node, has          ), node[has          ], soul);
+			node = state_ify({}, has, state_is(node, has), node[has], soul);
 			// If we have a key in-memory, do we really need to fetch?
 			// Maybe... in case the in-memory key we have is a local write
 			// we still need to trigger a pull/merge from peers.
@@ -241,21 +241,21 @@ Gun.ask = require('./ask')       ;
 		//Gun.window? Gun.obj.copy(node) : node; // HNPERF: If !browser bump Performance? Is this too dangerous to reference root graph? Copy / shallow copy too expensive for big nodes. Gun.obj.to(node); // 1 layer deep copy // Gun.obj.copy(node); // too slow on big nodes
 		node && ack(msg, node);
 		root.on('get', msg); // send GET to storage adapters.
-	};           
-	function ack(msg        , node          ){
+	};
+	function ack(msg, node){
 		var S = +new Date, ctx = msg._||{}, DBG = ctx.DBG = msg.DBG;
-		var to = msg['#'], id = text_rand(9), keys = Object.keys(node||'').sort(), soul = ((((node||'')                    )._||'')            )['#'], kl = keys.length, j = 0, root = msg.$._.root, F = (node === root.graph[soul        ]);
+		var to = msg['#'], id = text_rand(9), keys = Object.keys(node||'').sort(), soul = ((((node||''))._||''))['#'], kl = keys.length, j = 0, root = msg.$._.root, F = (node === root.graph[soul]);
 		console.STAT && console.STAT(S, ((DBG||ctx).gk = +new Date) - S, 'got keys');
 		// PERF: Consider commenting this out to force disk-only reads for perf testing? // TODO: .keys( is slow
 		node && (function go(){
 			S = +new Date;
-			var i = 0, k                    , put                     = {}           , tmp                   ;
+			var i = 0, k, put = {}, tmp;
 			while(i < 9 && (k = keys[i++])){
 				state_ify(put, k, state_is(node, k), node[k], soul);
 			}
 			keys = keys.slice(i);
-			(tmp = {}            )[soul        ] = put; put = tmp;
-			var faith                     ; if(F){ faith = function(){}           ; faith.ram = faith.faith = true; } // HNPERF: We're testing performance improvement by skipping going through security again, but this should be audited.
+			(tmp = {})[soul] = put; put = tmp;
+			var faith; if(F){ faith = function(){}; faith.ram = faith.faith = true; } // HNPERF: We're testing performance improvement by skipping going through security again, but this should be audited.
 			tmp = keys.length;
 			console.STAT && console.STAT(S, -(S - (S = +new Date)), 'got copied some');
 			DBG && (DBG.ga = +new Date);
@@ -271,44 +271,43 @@ Gun.ask = require('./ask')       ;
 ;(function(){
 	Gun.chain.opt = function(opt){
 		opt = opt || {};
-		var gun = this, at = gun._, tmp = (opt                  ).peers || opt;
+		var gun = this, at = gun._, tmp = (opt).peers || opt;
 		if(!Object.plain(opt)){ opt = {} }
-		if(!Object.plain(at.opt)){ at.opt = opt;              }
+		if(!Object.plain(at.opt)){ at.opt = opt; }
 		if('string' == typeof tmp){ tmp = [tmp] }
 		if(!Object.plain(at.opt.peers)){ at.opt.peers = {}}
 		if(tmp instanceof Array){
 			opt.peers = {};
 			tmp.forEach(function(url){
-				var p       = {}; p.id = p.url = url;
-				(opt                    ).peers[url] = at.opt .peers[url] = at.opt .peers[url] || p;
+				var p = {}; p.id = p.url = url;
+				(opt).peers[url] = at.opt.peers[url] = at.opt.peers[url] || p;
 			})
 		}
 		obj_each(opt, function each(k){ var v = this[k];
 			if((this && this.hasOwnProperty(k)) || 'string' == typeof v || Object.empty(v)){ this[k] = v; return }
 			if(v && v.constructor !== Object && !(v instanceof Array)){ return }
-			obj_each(v          , each);
+			obj_each(v, each);
 		});
 		at.opt.from = opt;
-		Gun.on('opt', at            );
+		Gun.on('opt', at);
 		at.opt.uuid = at.opt.uuid || function uuid(l){ return Gun.state().toString(36).replace('.','') + String.random(l||12) }
 		return gun;
 	}
 }());
 
-var obj_each = function(o        , f                                          ){ Object.keys(o).forEach(f,o) }, text_rand = String.random, turn = setTimeout.turn, valid = Gun.valid, state_is = Gun.state.is, state_ify = Gun.state.ify, u           , empty                   = {}, C         ;
+var obj_each = function(o, f){ Object.keys(o).forEach(f,o) }, text_rand = String.random, turn = setTimeout.turn, valid = Gun.valid, state_is = Gun.state.is, state_ify = Gun.state.ify, u, empty = {}, C;
 
-Gun.log = function(){ return (!Gun.log.off && C.log.apply(C, arguments                                                                                     )), [].slice.call(arguments).join(' ') }          ;
-Gun.log.once = function(w,s,o         ){ return (o = Gun.log.once)[w] = o[w] || 0, o[w]++ || Gun.log(s) }           ;
+Gun.log = function(){ return (!Gun.log.off && C.log.apply(C, arguments)), [].slice.call(arguments).join(' ') };
+Gun.log.once = function(w,s,o){ return (o = Gun.log.once)[w] = o[w] || 0, o[w]++ || Gun.log(s) };
 
-if(typeof window !== "undefined"){ (window.GUN = window.Gun = Gun             ).window = window }
+if(typeof window !== "undefined"){ (window.GUN = window.Gun = Gun).window = window }
 try{ if(typeof MODULE !== "undefined"){ MODULE.exports = Gun } }catch(e){}
 module.exports = Gun;
 
-((Gun.window||{})                       ).console = ((Gun.window||{})                       ).console || {log: function(){}}           ;
-(C = console).only = function(i, s){ return (C.only .i && i === C.only .i && C.only .i++) && (C.log.apply(C, arguments                                                                                     )              || s) };
+((Gun.window||{})).console = ((Gun.window||{})).console || {log: function(){}};
+(C = console).only = function(i, s){ return (C.only.i && i === C.only.i && C.only.i++) && (C.log.apply(C, arguments)  || s) };
 
 ;"Please do not remove welcome log unless you are paying for a monthly sponsorship, thanks!";
 Gun.log.once("welcome", "Hello wonderful person! :) Thanks for using GUN, please ask for help on http://chat.gun.eco if anything takes you longer than 5min to figure out!");
-	
 
 }());

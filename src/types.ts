@@ -996,8 +996,8 @@ export interface GetOpt {
   on?: 1 | true;
   /** Call `ok` as a `V2020Cb`. */
   v2020?: 1;
-  /** Do not call back for missing data. */
-  not?: 1;
+  /** Do not call back for missing data. Only its truthiness counts: lib/not.js passes its callback here. */
+  not?: 1 | ((...args: never[]) => unknown);
   change?: boolean;
   /** `this` of a `GetCb`. */
   as?: unknown;
@@ -1335,6 +1335,226 @@ export interface GunStatic extends OntoHost {
   Mesh: MeshFactory;
   /** Set by tests. */
   TESTING?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// The deprecated utilities (deprecated.js, appended to gun.js; lib/utils.js)
+// ---------------------------------------------------------------------------
+
+/** A callback of the deprecated utilities. Called with various `this` and arguments. */
+export type DepFunc = Bivariant<(...args: unknown[]) => unknown>;
+
+/** The `t` passed to `Gun.obj.map` callbacks: `t(k)` collects keys, `t(k, v)` pairs, into `t.r`. */
+export interface DepMapT {
+  (k: string | number, v?: unknown): void;
+  r?: Dict<unknown> | (string | number)[];
+}
+
+/** A `Gun.obj.map` callback, as a method so that it is checked bivariantly (a callback may take `k: string` for an object typed `unknown`). */
+interface DepMapCb<This, V, K> {
+  cb(this: This, v: V, k: K, t: DepMapT): unknown;
+}
+
+/** The overloads of `DepMap`, as methods so that implementations are checked bivariantly. */
+interface DepMapSignatures {
+  /** A list: `c(v, i, t)` with the 1-based (`Gun.list.index`) position `i`. */
+  map<T, This = unknown>(l: readonly T[] | null | undefined, c: DepMapCb<This, T, number>['cb'], _?: This): unknown;
+  /** An object: `c(v, k, t)` on its own keys. */
+  map<T, This = unknown>(l: Dict<T> | null | undefined, c: DepMapCb<This, T, string>['cb'], _?: This): unknown;
+  /** Either: `k` is a position or a key. */
+  map<T, This = unknown>(l: Dict<T> | readonly T[] | null | undefined, c: DepMapCb<This, T, string | number>['cb'], _?: This): unknown;
+  /** Anything else (what `obj.ify` returned...): objects and strings are iterated. */
+  map<This = unknown>(l: unknown, c: DepMapCb<This, unknown, string | number>['cb'], _?: This): unknown;
+}
+
+/**
+ * `Gun.obj.map(l, c, _)` (and `Gun.list.map`): call `c` (with `this` = `_`) on
+ * each item of the list or object `l` until it returns something, which is
+ * returned; else `t.r`. When `c` is not a function, the key (or position) of
+ * the value `c` is returned instead.
+ */
+export type DepMap = DepMapSignatures['map'];
+
+export interface DepText {
+  is(t: unknown): t is string;
+  /** `t` itself if it is a string, else its JSON (`undefined` for `undefined`), or `t.toString()` without `JSON`. */
+  ify(t: unknown): unknown;
+  random(l?: number, c?: string): string;
+  match(t: unknown, o?: string | LexMatch): boolean;
+  hash(s: unknown, c?: number): number | undefined;
+}
+
+export interface DepList {
+  is(l: unknown): l is unknown[];
+  slit: typeof Array.prototype.slice;
+  /** A sort function comparing the `k` of items (falsy items, and missing keys, compare equal). */
+  sort(k: string): Bivariant<(A: unknown, B: unknown) => number>;
+  map: DepMap;
+  /** 1: `map` reports list positions 1-based. */
+  index: number;
+}
+
+export interface DepObj {
+  is(o: unknown): o is Dict<unknown>;
+  put<T extends object | null | undefined>(o: T, k: string, v: unknown): T;
+  /** `o && hasOwnProperty(o, k)`: a falsy `o` is returned as it is. */
+  has: { (o: unknown, k: PropertyKey): unknown; _?: string };
+  del(o: Dict<unknown> | null | undefined, k: string): Dict<unknown> | undefined;
+  as(o: Dict<unknown>, k: string, v?: unknown, u?: undefined): unknown;
+  /** `JSON.parse` a string (`{}` when it fails), objects as they are. */
+  ify(o: unknown): unknown;
+  /** Copy the keys of `from` that `to` does not have yet. */
+  to(from: unknown, to?: Dict<unknown>): Dict<unknown>;
+  copy<T>(o: T): T;
+  /** No keys (except `n`, a key or an object of keys)? */
+  empty(o: unknown, n?: unknown): boolean;
+  map: DepMap;
+}
+
+export interface DepTime {
+  /** Now, in ms. */
+  is(): number;
+  /** `t instanceof Date`, or now (in ms) when `t` is falsy. */
+  is(t: unknown): boolean | number;
+}
+
+export interface DepLink {
+  _: '#';
+  /** The soul of a link, `false` if `v` is not one. */
+  is(v: unknown): Soul | false;
+  /** `{'#': t}`. */
+  ify<T>(t: T): { '#': T };
+}
+
+export interface DepVal {
+  /** `true` for a valid scalar, the soul for a link, else `false`. */
+  is(v: unknown): boolean | Soul;
+  link: DepLink;
+  rel: DepLink;
+}
+
+/** A node (or anything with a meta) as the deprecated utilities see it. */
+export interface DepNodeLike {
+  _?: Dict<unknown>;
+  [k: string]: unknown;
+}
+
+/** `this` of `Node.is`'s per key check. */
+export interface DepNodeIsAt {
+  as?: unknown;
+  cb?: DepFunc | null;
+  s: string;
+  n: Dict<unknown>;
+}
+
+/** The options of `Node.ify`. */
+export interface DepNodeIfyOpt {
+  soul?: string;
+  map?: DepFunc;
+  node?: DepNodeLike;
+}
+
+/** `Gun.node.soul(n, o)`: `n && n._ && n._[o || '#']`, the soul in the meta of a node. */
+export interface DepNodeSoul {
+  (n: object | undefined, o?: string): Soul | undefined;
+  /** Anything else: falsy values are returned as they are. */
+  (n: unknown, o?: string): unknown;
+  /** Put a soul (`o`, `o.soul`, the existing one or a random one) on `n`, creating it and its meta if needed. */
+  ify(n?: DepNodeLike | null, o?: string | { soul?: string }): DepNodeLike;
+  _: '#';
+}
+
+export interface DepNode {
+  _: '_';
+  /** Set to the bare function, then `ify` and `_` are added. */
+  get soul(): DepNodeSoul;
+  set soul(v: DepNodeSoul | ((n: DepNodeLike | null | undefined, o?: string) => unknown));
+  /** Is `n` a node (an object with a soul and valid values)? Calls `cb(v, k, n, soul)` on each key but `_`. */
+  is<This = unknown>(n: unknown, cb?: ((this: This, v: GunValue, k: string, n: GunNode, s: Soul) => unknown) | null, as?: This): boolean;
+  /** A node from a shallow object: `o` is its soul, a `map(v, k, node)` of its values, or both. */
+  ify(obj: unknown, o?: string | DepFunc | DepNodeIfyOpt, as?: unknown): DepNodeLike;
+}
+
+/** `Graph.ify`'s environment (also a function: then it is its own `map`). */
+export interface DepGraphEnv {
+  soul?: string;
+  map?: DepFunc;
+  invalid?: DepFunc;
+  shell?: unknown;
+  graph?: Dict<unknown>;
+  seen?: DepGraphAt[];
+  as?: unknown;
+  root?: DepNodeLike;
+  err?: string;
+}
+
+/** A node being built by `Graph.ify`. */
+export interface DepGraphAt {
+  path: string[];
+  obj: unknown;
+  env?: DepGraphEnv;
+  soul?: (this: DepGraphAt, id: string) => void;
+  link?: Dict<unknown>;
+  node?: DepNodeLike;
+}
+
+/** `nf`, the per node callback of `Graph.is`, remembers its node and `as`: `nf(fn)` calls `fn` on each key of the node. */
+export interface DepNf {
+  (fn?: DepFunc): void;
+  n?: unknown;
+  as?: unknown;
+}
+
+export interface DepGraph {
+  /**
+   * Is `g` a graph (an object of valid nodes by soul)? Calls `cb(node, soul, nf)`
+   * on each node and `fn(v, k, node, soul)` on each key of each node.
+   */
+  is<This = unknown>(
+    g: unknown,
+    cb?: ((this: This, n: GunNode, s: Soul, nf: DepNf) => unknown) | null,
+    fn?: ((this: This, v: GunValue, k: string, n: GunNode, s: Soul) => unknown) | null,
+    as?: This,
+  ): boolean;
+  ify(obj: unknown, env?: string | DepGraphEnv | (DepFunc & DepGraphEnv), as?: string | { shell?: unknown }): Dict<unknown>;
+  /** `{[soul]: node}`, `undefined` without a soul. */
+  node<N extends object>(node: N | undefined): Dict<N> | undefined;
+  to(graph: Dict<unknown> | undefined, root: string, opt?: { seen: Dict<unknown> }): Dict<unknown> | undefined;
+}
+
+/** What `State.map(cb, s, as)` accepts as `cb` and `s`: a callback, an object to stamp, or a state. */
+export type DepStateMapArg = DepFunc | Dict<unknown> | number | null | undefined;
+
+export interface DepState {
+  lex(): string;
+  /** Copy key `k` (value and state) of `from` onto `to` (a new node by default). */
+  to(from: GunNode | DepNodeLike | undefined, k: string, to?: NodeLike): GunNode;
+  map(cb?: DepStateMapArg, s?: DepStateMapArg, as?: unknown): Dict<unknown> | ((this: unknown, v: unknown, k: string, o: Dict<unknown>, opt?: unknown) => unknown);
+}
+
+/**
+ * The deprecated utilities src/deprecated.ts (appended to gun.js) and
+ * lib/utils.js install on `Gun` where `Gun` is a global (browsers): under Node
+ * they are missing. Each one logs a deprecation warning. Modules that use them
+ * type `Gun` as `GunStatic & Pick<GunDeprecated, ...>`.
+ */
+export interface GunDeprecated {
+  fn: { is(fn: unknown): fn is DepFunc };
+  bi: { is(b: unknown): boolean };
+  /** Numbers and numeric strings (not lists). */
+  num: { is(n: unknown): boolean };
+  text: DepText;
+  list: DepList;
+  /** Set to `Type.boj || {is}`, then filled. */
+  get obj(): DepObj;
+  set obj(v: DepObj | { is(o: unknown): boolean });
+  /** Read (but never written) by upstream's `Type.obj = Type.boj || ...` typo. */
+  boj?: DepObj;
+  time: DepTime;
+  val: DepVal;
+  node: DepNode;
+  graph: DepGraph;
+  state: StateFn & DepState;
 }
 
 // ---------------------------------------------------------------------------

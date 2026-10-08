@@ -8,7 +8,7 @@
 
     SEA.encrypt = SEA.encrypt || (async (data, pair, cb, opt) => { try {
       opt = opt || {};
-      var key = (pair||opt).epriv || pair;
+      var key = ((pair||opt)).epriv || pair;
       if(u === data){ throw '`undefined` not allowed.' }
       if(!key){
         if(!SEA.I){ throw 'No encryption key.' }
@@ -38,5 +38,5 @@
     }});
 
     module.exports = SEA.encrypt;
-  
+
 }());

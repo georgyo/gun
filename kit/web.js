@@ -7,12 +7,12 @@ var W = window, D = document, SW = screen.width, SH = screen.height, ON = 'addEv
 }());
 var tmp = D[HI]('meta'); tmp.name = 'viewport'; tmp.content = 'width=device-width, initial-scale=1, interactive-widget=resizes-content'; D.head.appendChild(tmp);
 //(tmp=D[HI]('link')).rel="stylesheet"; tmp.href=((D.currentScript||'').src||'').replace('.js','.css'); D.head.appendChild(tmp); // auto-add CSS?
-W.parent === W && ((tmp = D.head.parentNode.style)['overscroll-behavior-y'] = 'contain') && (tmp['background-color'] = 'var(--fill)');
+W.parent === W && ((tmp = (D.head.parentNode).style)['overscroll-behavior-y'] = 'contain') && (tmp['background-color'] = 'var(--fill)');
 function LOAD(src, h, s){ (s = D[HI]('script')).onload = h; s.src = src; D.head.appendChild(s) };
 function MAP(scroll, screen){ return (scroll / screen)>>0 }; // scroll, screen
 kit = function(){};
 // dip, dive, into, eat, lid, tin, key, face
-kit.ear = function(h,e,v){ (v=v||W)[ON](e=(h.call?(h.where=e):(e.where=h,(h=e).where))||'',h); h.off = function(){ v.removeEventListener(e,h) }; W===v&&kit.up(e,'ear'); return h; };
+kit.ear = function(h, e, v){ (v=v||W)[ON](e=(h.call?(h.where=e):((e).where=h,(h=e).where))||'',h); h.off = function(){ v.removeEventListener(e,h) }; W===v&&kit.up(e,'ear'); return h; };
 kit.say = function(d,e,v,s){ (v=v||W).dispatchEvent(new CustomEvent(e=e||'',{detail:d,bubbles:true})); !s&&(W===v)&&kit.up(d,e) };
 kit.up = function up(data,type,tmp){
   if(W === W.parent){ return }
@@ -35,7 +35,7 @@ W[ON]('message',function(eve,data,i,tmp){
     kit.say(data.data||data.detail,data.type,0,1);
     return;
   }
-  if('ear'==data.type){ kit.ear(data.detail||data.data,function hear(eve){ if(!(i||'').contentWindow){hear.off(); return } i.contentWindow.postMessage({data:eve.detail||eve.data,type:eve.type,wrap:-1}, DEV?'*':location.origin) }); return; }
+  if('ear'==data.type){ kit.ear(data.detail ||data.data,function hear(eve){ if(!(i||'').contentWindow){(hear).off(); return } i.contentWindow.postMessage({data:eve.detail||eve.data,type:eve.type,wrap:-1}, DEV?'*':location.origin) }); return; }
   kit.say(data.data||data.detail,data.type,i);
 });
 kit.views = new Map;
@@ -56,8 +56,8 @@ kit.ear('join iframe',kit.add=function(eve){
 kit.ear('style',function(eve,i){
   if(!eve.target || !eve.target.style){ return }
   //console.log(location.pathname.split('/').slice(-1)[0], "resize:", eve.target, eve.detail);
-  var h = (eve.detail||'').height; if(h) eve.target.style.height = isNaN(h) ? h : h+'px';
-  var w = (eve.detail||'').width; if(w) eve.target.style.width = isNaN(w) ? w : w+'px';
+  var h = (eve.detail||'').height; if(h) eve.target.style.height = isNaN(h) ? h  : h+'px'; // `isNaN` converts CSS text too.
+  var w = (eve.detail||'').width; if(w) eve.target.style.width = isNaN(w) ? w  : w+'px'; // `isNaN` converts CSS text too.
 },document);
 kit.http = {createServer: function(h){
   h.listen = function(port,ip,cb){cb&&cb()};
@@ -87,7 +87,7 @@ kit.http = {createServer: function(h){
   i.className = 'main page'; i.src||(i===D.body)||(i.srcdoc = data, D.body.appendChild(i)); location.hash = i.id; // TODO: BUG? Prevent double hash change
 }};
 W[ON]('submit', function(eve, act){ eve.preventDefault();
-  act = (eve.target.action||'').replace(location.__dirname+'/','').split('#')[0];
+  act = ((eve.target).action||'').replace(location.__dirname+'/','').split('#')[0];
   //console.log(location.pathname.split('/').slice(-1)[0], 'submit', act);
   (kit.server||kit.http.serve)(
     kit.http.req(act,Object.fromEntries(new FormData(eve.target))),

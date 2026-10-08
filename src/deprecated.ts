@@ -1,4 +1,4 @@
-import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn } from './types';
+import type { DepFunc, DepGraph, DepGraphAt, DepGraphEnv, DepLink, DepList, DepMap, DepMapT, DepNf, DepNode, DepNodeIfyOpt, DepNodeIsAt, DepNodeLike, DepObj, DepStateMapArg, DepText, DepTime, DepVal, Dict, GunDeprecated, GunStatic } from './types';
 /* BELOW IS TEMPORARY FOR OLD INTERNAL COMPATIBILITY, THEY ARE IMMEDIATELY DEPRECATED AND WILL BE REMOVED IN NEXT VERSION */
 ;(function(){
 	var u: undefined;
@@ -62,7 +62,7 @@ import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn }
 			else { return 0 }
 		}
 	}
-	Type.list.map = Type.list.map || function(l, c, _){ DEP('list.map'); return obj_map(l, c, _) }
+	Type.list.map = Type.list.map || function(l: Dict<unknown>, c: DepFunc, _?: object){ DEP('list.map'); return obj_map(l, c, _) }
 	Type.list.index = 1; // change this to 0 if you want non-logical, non-mathematical, non-matrix, non-convenient array notation
 	Type.obj = Type.boj || {is: function(o){ DEP('obj'); return o? (o instanceof Object && o.constructor === Object) || Object.prototype.toString.call(o).match(/^\[object (\w+)\]$/)![1] === 'Object' : false }} as DepObj
 	Type.obj.put = Type.obj.put || function(o, k, v){ DEP('obj.put'); return (o as Dict<unknown>||{})[k] = v, o }
@@ -190,7 +190,7 @@ import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn }
 			}
 		}
 	}());
-	Val.link.ify = function(t){ DEP('val.link.ify'); return obj_put({}, rel_, t) } // convert a soul into a relation and return it.
+	Val.link.ify = function(t){ DEP('val.link.ify'); return obj_put({} as {'#': typeof t}, rel_, t) } // convert a soul into a relation and return it.
 	Type.obj.has._ = '.';
 	var rel_ = Val.link._, u: undefined;
 	var bi_is = Type.bi.is;
@@ -233,7 +233,7 @@ import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn }
 			if(o.node = Node.soul.ify(o.node || {}, o)){
 				obj_map(obj, map, {o:o,as:as});
 			}
-			return o.node; // This will only be a valid node if the object wasn't already deep!
+			return o.node!; // This will only be a valid node if the object wasn't already deep!
 		}
 		function map(this: {o: DepNodeIfyOpt, as: unknown}, v: unknown, k: string){ var o = this.o, tmp, u: undefined; // iterate over each key/value.
 			if(o.map){
@@ -302,7 +302,7 @@ import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn }
 			if(!g || !obj_is(g) || obj_empty(g)){ return false } // must be an object.
 			return !obj_map(g, map, {cb:cb,fn:fn,as:as}); // makes sure it wasn't an empty object.
 		}
-		function map(this: {cb?: DepFunc, fn?: DepFunc, as?: unknown}, n: unknown, s: string){ // we invert this because the way'? we check for this is via a negation.
+		function map(this: {cb?: DepFunc | null, fn?: DepFunc | null, as?: unknown}, n: unknown, s: string){ // we invert this because the way'? we check for this is via a negation.
 			if(!n || s !== Node.soul(n) || !Node.is(n, this.fn, this.as)){ return true } // it is true that this is an invalid graph.
 			if(!this.cb){ return }
 			(nf as DepNf).n = n; (nf as DepNf).as = this.as; // sequential race conditions aren't races.
@@ -452,149 +452,4 @@ import type { Bivariant, Dict, GunNode, GunStatic, LexMatch, NodeLike, StateFn }
 	Type.graph = Type.graph || Graph;
 }());
 
-declare var Gun: /* The browser global `Gun` (window.Gun), with the deprecated utilities this script installs on it. */ DepGun;
-
-interface DepGun extends GunStatic {
-	fn: { is(fn: unknown): boolean };
-	bi: { is(b: unknown): boolean };
-	/** Numbers and numeric strings (not lists). */
-	num: { is(n: unknown): boolean };
-	text: DepText;
-	list: DepList;
-	obj: DepObj;
-	/** Read (but never written) by upstream's `Type.obj = Type.boj || ...` typo. */
-	boj?: DepObj;
-	time: DepTime;
-	val: DepVal;
-	node: DepNode;
-	graph: DepGraph;
-	state: StateFn & DepState;
-}
-
-type DepFunc = /* A callback of the deprecated utilities. Called with various `this` and arguments. */ Bivariant<(...args: unknown[]) => unknown>;
-
-interface DepTime {
-	is(t?: unknown): boolean | number;
-}
-
-interface DepText {
-	is(t: unknown): t is string;
-	/** `t` itself if it is a string, else its JSON (or `toString()`). */
-	ify(t: unknown): unknown;
-	random(l?: number, c?: string): string;
-	match(t: unknown, o?: string | LexMatch): boolean;
-	hash(s: unknown, c?: number): number | undefined;
-}
-
-interface DepList {
-	is(l: unknown): l is unknown[];
-	slit: typeof Array.prototype.slice;
-	sort(k: string): (A: unknown, B: unknown) => number;
-	map: DepMap;
-	/** 1: `map` reports list positions 1-based. */
-	index: number;
-}
-
-interface DepMapT { // The `t` passed to `Gun.obj.map` callbacks: `t(k)` collects keys, `t(k, v)` pairs, into `t.r`.
-	(k: string | number, v?: unknown): void;
-	r?: Dict<unknown> | (string | number)[];
-}
-
-type DepMap = /* `Gun.obj.map(l, c, _)`: call `c` on each item of the list or object `l` (with `this` = `_`) until it returns something, or find the key / position of the value `c`. */ Bivariant<(l: unknown, c: unknown, _?: object) => unknown>;
-
-interface DepObj {
-	is(o: unknown): o is Dict<unknown>;
-	put<T extends object | null | undefined>(o: T, k: string, v: unknown): T;
-	has: { (o: unknown, k: PropertyKey): unknown; _?: string };
-	del(o: Dict<unknown> | null | undefined, k: string): Dict<unknown> | undefined;
-	as(o: Dict<unknown>, k: string, v?: unknown, u?: undefined): unknown;
-	ify(o: unknown): unknown;
-	to(from: unknown, to?: Dict<unknown>): Dict<unknown>;
-	copy<T>(o: T): T;
-	empty(o: unknown, n?: unknown): boolean;
-	map: DepMap;
-}
-
-interface DepLink {
-	_: string;
-	/** The soul of a link, `false` if `v` is not one. */
-	is(v: unknown): string | false;
-	ify(t: unknown): Dict<unknown>;
-}
-
-interface DepVal {
-	is(v: unknown): boolean | string;
-	link: DepLink;
-	rel: DepLink;
-}
-
-interface DepNodeLike { // A node (or anything with a meta) as the deprecated utilities see it.
-	_?: Dict<unknown>;
-	[k: string]: unknown;
-}
-
-interface DepNodeIsAt { // `this` of `Node.is`'s per key check.
-	as?: unknown;
-	cb?: DepFunc;
-	s: string;
-	n: Dict<unknown>;
-}
-
-interface DepNodeIfyOpt { // The options of `Node.ify`.
-	soul?: string;
-	map?: DepFunc;
-	node?: DepNodeLike;
-}
-
-interface DepNode {
-	_: string;
-	soul: {
-		(n: unknown, o?: string): string | undefined;
-		ify(n?: DepNodeLike | null, o?: string | { soul?: string }): DepNodeLike;
-		_: string;
-	};
-	is(n: unknown, cb?: DepFunc, as?: unknown): boolean;
-	ify(obj: unknown, o?: string | DepFunc | DepNodeIfyOpt, as?: unknown): DepNodeLike | undefined;
-}
-
-interface DepGraphEnv { // `Graph.ify`'s environment (also a function: then it is its own `map`).
-	soul?: string;
-	map?: DepFunc;
-	invalid?: DepFunc;
-	shell?: unknown;
-	graph?: Dict<unknown>;
-	seen?: DepGraphAt[];
-	as?: unknown;
-	root?: DepNodeLike;
-	err?: string;
-}
-
-interface DepGraphAt { // A node being built by `Graph.ify`.
-	path: string[];
-	obj: unknown;
-	env?: DepGraphEnv;
-	soul?: (this: DepGraphAt, id: string) => void;
-	link?: Dict<unknown>;
-	node?: DepNodeLike;
-}
-
-interface DepNf { // `nf`, the per node callback of `Graph.is`, remembers its node and `as`.
-	(fn?: DepFunc): void;
-	n?: unknown;
-	as?: unknown;
-}
-
-interface DepGraph {
-	is(g: unknown, cb?: DepFunc, fn?: DepFunc, as?: unknown): boolean;
-	ify(obj: unknown, env?: string | DepGraphEnv | (DepFunc & DepGraphEnv), as?: string | { shell?: unknown }): Dict<unknown>;
-	node(node: unknown): Dict<unknown> | undefined;
-	to(graph: Dict<unknown> | undefined, root: string, opt?: { seen: Dict<unknown> }): Dict<unknown> | undefined;
-}
-
-type DepStateMapArg = /* What `State.map(cb, s, as)` accepts as `cb` and `s`: a callback, an object to stamp, or a state. */ DepFunc | Dict<unknown> | number | null | undefined;
-
-interface DepState {
-	lex(): string;
-	to(from: DepNodeLike | undefined, k: string, to?: NodeLike): GunNode;
-	map(cb?: DepStateMapArg, s?: DepStateMapArg, as?: unknown): Dict<unknown> | ((this: unknown, v: unknown, k: string, o: Dict<unknown>, opt?: unknown) => unknown);
-}
+declare var Gun: /* The browser global `Gun` (window.Gun), with the deprecated utilities this script installs on it. */ GunStatic & GunDeprecated;

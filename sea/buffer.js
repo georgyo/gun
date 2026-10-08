@@ -77,5 +77,5 @@
     SafeBuffer.prototype.toString = SeaArray.prototype.toString
 
     module.exports = SafeBuffer;
-  
+
 }());
