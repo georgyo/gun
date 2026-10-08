@@ -1,6 +1,5 @@
-;(function(){
-                                         
-var Gun            = require('./root');
+import type { GunStatic } from './types';
+var Gun: GunStatic = require('./root');
 require('./shim');
 require('./onto');
 require('./book');
@@ -17,5 +16,3 @@ require('./websocket');
 require('./localStorage');
 module.exports = Gun;
 	
-
-}());

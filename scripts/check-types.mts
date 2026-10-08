@@ -5,6 +5,10 @@
 //     the line directly above, e.g.
 //         // any: user supplied plugin, shape is unknowable.
 //   * `@ts-ignore`, `@ts-nocheck` and `@ts-expect-error` are never allowed.
+//   * A `var` declared without a type and without an initializer (`var tmp;`)
+//     is an "evolving any": TypeScript types each read by control flow. That is
+//     fine as long as no read of it is actually `any` and it is read at all;
+//     otherwise it must be annotated (`var lot: undefined` when unused).
 //
 // Usage: node --experimental-strip-types scripts/check-types.mts [--list]
 
@@ -29,6 +33,49 @@ if (!config) {
 const problems: string[] = [];
 const justified: string[] = [];
 let doubleCasts = 0;
+
+const program = ts.createProgram(config.fileNames, config.options);
+const checker = program.getTypeChecker();
+
+// Uninitialised, unannotated variables whose reads are `any`, or that are never read.
+function evolvingAny(sf: ts.SourceFile, rel: string): void {
+  const reads = new Map<ts.Symbol, ts.Identifier[]>();
+  const decls: ts.VariableDeclaration[] = [];
+  const visit = (node: ts.Node): void => {
+    if (ts.isVariableDeclaration(node)) {
+      const loop = node.parent.parent;
+      if (
+        !node.type && !node.initializer && ts.isIdentifier(node.name) &&
+        !ts.isCatchClause(node.parent) && !ts.isForInStatement(loop) && !ts.isForOfStatement(loop)
+      ) {
+        decls.push(node);
+      }
+    } else if (ts.isIdentifier(node)) {
+      const p = node.parent;
+      const write =
+        (ts.isVariableDeclaration(p) && p.name === node) ||
+        (ts.isBinaryExpression(p) && p.left === node && p.operatorToken.kind === ts.SyntaxKind.EqualsToken);
+      const symbol = !write && checker.getSymbolAtLocation(node);
+      if (symbol) {
+        (reads.get(symbol) ?? reads.set(symbol, []).get(symbol)!).push(node);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  for (const d of decls) {
+    const symbol = checker.getSymbolAtLocation(d.name);
+    const ids = (symbol && reads.get(symbol)) || [];
+    const anyRead = ids.find((id) => (checker.getTypeAtLocation(id).flags & ts.TypeFlags.Any) !== 0);
+    if (!ids.length || anyRead) {
+      const line = sf.getLineAndCharacterOfPosition((anyRead ?? d).getStart(sf)).line;
+      problems.push(
+        `${rel}:${line + 1}: \`${d.name.getText(sf)}\` has no type and no initializer and is ` +
+          (anyRead ? 'read as `any`' : 'never read') + ' (annotate it, `: undefined` when unused)',
+      );
+    }
+  }
+}
 
 for (const file of config.fileNames) {
   const rel = relative(root, file);
@@ -64,6 +111,10 @@ for (const file of config.fileNames) {
     ts.forEachChild(node, visit);
   };
   visit(sf);
+  const checked = program.getSourceFile(file);
+  if (checked) {
+    evolvingAny(checked, rel);
+  }
 }
 
 if (list) {

@@ -23,6 +23,14 @@ const stat = args.includes('--stat');
 
 function outputs(): string[] {
   const files = ['gun.js', 'sea.js'];
+  // The unbuilt modules of gun.js and sea.js (scripts/build.mts `unbuilt`).
+  for (const dir of ['src', 'sea']) {
+    for (const name of readdirSync(join(root, dir)).sort()) {
+      if (name.endsWith('.ts') && !name.endsWith('.d.ts') && name !== 'types.ts' && name !== 'deprecated.ts') {
+        files.push(dir + '/' + name.replace(/\.ts$/, '.js'));
+      }
+    }
+  }
   for (const dir of ['.', 'lib', 'kit']) {
     for (const name of readdirSync(join(root, dir)).sort()) {
       if (name.endsWith('.ts') && !name.endsWith('.d.ts') && name !== 'types.ts') {

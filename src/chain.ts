@@ -1,12 +1,11 @@
-;(function(){
-                                                                                                                                                                                                                                               
+import type { AnyMeta, Chain, ChainData, ChainMeta, ChainMsg, ChainPut, Dict, GetListener, GunGraph, GunNode, GunOn, GunStatic, GunValue, HamState, Lex, Msg, MsgMeta, NodeLike, NodeMeta, OntoListener, RootMeta, Seen, Soul } from './types';
 
 // WARNING: GUN is very simple, but the JavaScript chaining API around GUN
 // is complicated and was extremely hard to build. If you port GUN to another
 // language, consider implementing an easier API to build.
-var Gun            = require('./root');
-Gun.chain.chain = function(             sub        ){
-	var gun = this, at = gun._, chain = new (sub || gun).constructor(gun), cat = chain._, root          ;
+var Gun: GunStatic = require('./root');
+Gun.chain.chain = function(this: Chain, sub?: Chain){
+	var gun = this, at = gun._, chain = new (sub || gun).constructor(gun), cat = chain._, root: RootMeta;
 	cat.root = root = at.root;
 	cat.id = ++root.once;
 	cat.back = gun._;
@@ -16,8 +15,8 @@ Gun.chain.chain = function(             sub        ){
 	return chain;
 }
 
-function output(                                    msg     ){
-	var put           , get                          , at = this.as, back          = at.back, root = at.root, tmp                           ;
+function output(this: OntoListener<Msg, ChainMeta>, msg: Msg){
+	var put: undefined, get: Lex | string | undefined, at = this.as, back: AnyMeta = at.back, root = at.root, tmp: Lex | AnyMeta | undefined;
 	if(!msg.$){ msg.$ = at.$ }
 	this.to.next(msg);
 	if(at.err){ at.on('in', {put: at.put = u, $: at.$}); return }
@@ -27,13 +26,13 @@ function output(                                    msg     ){
 			return;
 		}*/
 		if(root.pass){ root.pass[at.id] = at; } // will this make for buggy behavior elsewhere?
-		if(at.lex){ Object.keys(at.lex).forEach(function(k){ (tmp                 )[k] = (at.lex                 )[k] }, tmp = msg.get = msg.get || {}) }
+		if(at.lex){ Object.keys(at.lex).forEach(function(k){ (tmp as Dict<unknown>)[k] = (at.lex as Dict<unknown>)[k] }, tmp = msg.get = msg.get || {}) }
 		if(get['#'] || at.soul){
 			get['#'] = get['#'] || at.soul;
 			//root.graph[get['#']] = root.graph[get['#']] || {_:{'#':get['#'],'>':{}}};
 			msg['#'] || (msg['#'] = text_rand(9)); // A3120 ?
-			back = (root.$.get(get['#'] )._);
-			if(!(get = get['.']                      )){ // soul
+			back = (root.$.get(get['#']!)._);
+			if(!(get = get['.'] as string | undefined)){ // soul
 				tmp = back.ask && back.ask['']; // check if we have already asked for the full node
 				(back.ask || (back.ask = {}))[''] = back; // add a flag that we are now.
 				if(u !== back.put){ // if we already have data,
@@ -45,7 +44,7 @@ function output(                                    msg     ){
 			if(obj_has(back.put, get)){ // TODO: support #LEX !
 				tmp = back.ask && back.ask[get];
 				(back.ask || (back.ask = {}))[get] = back.$.get(get)._;
-				back.on('in', {get: get, put: {'#': back.soul, '.': get, ':': (back.put           )[get]            , '>': state_is(root.graph[back.soul ], get)}});
+				back.on('in', {get: get, put: {'#': back.soul, '.': get, ':': (back.put as GunNode)[get] as GunValue, '>': state_is(root.graph[back.soul!], get)}});
 				if(tmp){ return }
 			}
 				/*put = (back.$.get(get)._);
@@ -82,7 +81,7 @@ function output(                                    msg     ){
 		if(get['.']){
 			if(at.get){
 				msg = {get: {'.': at.get}, $: at.$};
-				((back             ).ask || ((back             ).ask = {}))[at.get] = msg.$ ._; // TODO: PERFORMANCE? More elegant way?
+				((back as ChainMeta).ask || ((back as ChainMeta).ask = {}))[at.get] = msg.$!._; // TODO: PERFORMANCE? More elegant way?
 				return back.on('out', msg);
 			}
 			msg = {get: at.lex? msg.get : {}, $: at.$};
@@ -91,31 +90,31 @@ function output(                                    msg     ){
 		(at.ask || (at.ask = {}))[''] = at;	 //at.ack = at.ack || -1;
 		if(at.get){
 			get['.'] = at.get;
-			((back             ).ask || ((back             ).ask = {}))[at.get] = msg.$._; // TODO: PERFORMANCE? More elegant way?
+			((back as ChainMeta).ask || ((back as ChainMeta).ask = {}))[at.get] = msg.$._; // TODO: PERFORMANCE? More elegant way?
 			return back.on('out', msg);
 		}
 	}
 	return back.on('out', msg);
 }; Gun.on.out = output;
 
-function input(                                         msg          , cat            ){ cat = cat || this.as; // TODO: V8 may not be able to optimize functions with different parameter calls, so try to do benchmark to see if there is any actual difference.
-	var root = cat.root, gun = msg.$ || (msg.$ = cat.$), at = (gun||'')._ || empty, tmp                                                                = (msg.put||'')                       , soul = tmp['#'], key = tmp['.'], change = (u !== tmp['='])? tmp['='] : tmp[':'], state                       = tmp['>'] || -Infinity, sat                                         ; // eve = event, at = data at, cat = chain at, sat = sub at (children chains).
+function input(this: OntoListener<ChainMsg, ChainMeta>, msg: ChainMsg, cat?: ChainMeta){ cat = cat || this.as; // TODO: V8 may not be able to optimize functions with different parameter calls, so try to do benchmark to see if there is any actual difference.
+	var root = cat.root, gun = msg.$ || (msg.$ = cat.$), at = (gun||'')._ || empty, tmp: (ChainPut & NodeLike) | ChainMsg | ChainMeta | Soul | boolean = (msg.put||'') as ChainPut & NodeLike, soul = tmp['#'], key = tmp['.'], change = (u !== tmp['='])? tmp['='] : tmp[':'], state: HamState | undefined = tmp['>'] || -Infinity, sat: ChainMeta | Dict<ChainMeta> | undefined; // eve = event, at = data at, cat = chain at, sat = sub at (children chains).
 	if(u !== msg.put && (u === tmp['#'] || u === tmp['.'] || (u === tmp[':'] && u === tmp['=']) || u === tmp['>'])){ // convert from old format
 		if(!valid(tmp)){
-			if(!(soul = ((((tmp||'')            )._||'')            )['#'])){ console.log("chain not yet supported for", tmp, '...', msg, cat); return; }
+			if(!(soul = ((((tmp||'') as NodeLike)._||'') as NodeMeta)['#'])){ console.log("chain not yet supported for", tmp, '...', msg, cat); return; }
 			gun = cat.root.$.get(soul);
-			return setTimeout.each(Object.keys(tmp).sort(), function(k        ){ // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync?
+			return setTimeout.each(Object.keys(tmp).sort(), function(k: string){ // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync?
 				if('_' == k || u === (state = state_is(tmp, k))){ return }
-				cat.on('in', {$: gun, put: {'#': soul, '.': k, '=': (tmp           )[k]            , '>': state}, VIA: msg});
+				cat.on('in', {$: gun, put: {'#': soul, '.': k, '=': (tmp as GunNode)[k] as GunValue, '>': state}, VIA: msg});
 			});
 		}
-		cat.on('in', {$: at.back .$, put: {'#': soul = at.back .soul, '.': key = at.has || at.get, '=': tmp             , '>': state_is(at.back .put, key)}, via: msg}); // TODO: This could be buggy! It assumes/approxes data, other stuff could have corrupted it.
+		cat.on('in', {$: at.back!.$, put: {'#': soul = at.back!.soul, '.': key = at.has || at.get, '=': tmp as ChainData, '>': state_is(at.back!.put, key)}, via: msg}); // TODO: This could be buggy! It assumes/approxes data, other stuff could have corrupted it.
 		return;
 	}
-	if(((msg.seen||'')                 )[cat.id]){ return } (msg.seen || (msg.seen = function(){}        ))[cat.id] = cat; // help stop some infinite loops
+	if(((msg.seen||'') as Partial<Seen>)[cat.id]){ return } (msg.seen || (msg.seen = function(){} as Seen))[cat.id] = cat; // help stop some infinite loops
 
 	if(cat !== at){ // don't worry about this when first understanding the code, it handles changing contexts on a message. A soul chain will never have a different context.
-		Object.keys(msg).forEach(function(k){ (tmp                 )[k] = (msg                 )[k] }, tmp = {}            ); // make copy of message
+		Object.keys(msg).forEach(function(k){ (tmp as Dict<unknown>)[k] = (msg as Dict<unknown>)[k] }, tmp = {} as ChainMsg); // make copy of message
 		tmp.get = cat.get || tmp.get;
 		if(!cat.soul && !cat.has){ // if we do not recognize the chain type
 			tmp.$$$ = tmp.$$$ || cat.$; // make a reference to wherever it came from.
@@ -128,10 +127,10 @@ function input(                                         msg          , cat      
 	}
 	unlink(msg, cat);
 
-	if(((cat.soul/* && (cat.ask||'')['']*/) || msg.$$) && state >= (state_is(root.graph[soul        ], key)                                                                  )){ // The root has an in-memory cache of the graph, but if our peer has asked for the data then we want a per deduplicated chain copy of the data that might have local edits on it.
-		(tmp = root.$.get(soul        )._).put = state_ify(tmp.put            , key, state, change, soul);
+	if(((cat.soul/* && (cat.ask||'')['']*/) || msg.$$) && state >= (state_is(root.graph[soul as Soul], key) as /* undefined (no node or no states) compares false */ HamState)){ // The root has an in-memory cache of the graph, but if our peer has asked for the data then we want a per deduplicated chain copy of the data that might have local edits on it.
+		(tmp = root.$.get(soul as Soul)._).put = state_ify(tmp.put as NodeLike, key, state, change, soul);
 	}
-	if(!at.soul /*&& (at.ask||'')['']*/ && state >= (state_is(root.graph[soul        ], key)                                                                  ) && (sat = ((root.$.get(soul        )._.next||'')                   )[key          ])){ // Same as above here, but for other types of chains. // TODO: Improve perf by preventing echoes recaching.
+	if(!at.soul /*&& (at.ask||'')['']*/ && state >= (state_is(root.graph[soul as Soul], key) as /* undefined (no node or no states) compares false */ HamState) && (sat = ((root.$.get(soul as Soul)._.next||'') as Dict<ChainMeta>)[key as string])){ // Same as above here, but for other types of chains. // TODO: Improve perf by preventing echoes recaching.
 		sat.put = change; // update cache
 		if('string' == typeof (tmp = valid(change))){
 			sat.put = root.$.get(tmp)._.put || change; // share same cache as what we're linked to.
@@ -140,14 +139,14 @@ function input(                                         msg          , cat      
 
 	this.to && this.to.next(msg); // 1st API job is to call all chain listeners.
 	// TODO: Make input more reusable by only doing these (some?) calls if we are a chain we recognize? This means each input listener would be responsible for when listeners need to be called, which makes sense, as they might want to filter.
-	cat.any && setTimeout.each(Object.keys(cat.any), function(any                                  ){ (any = cat.any [any          ]) && any(msg) },0,99); // 1st API job is to call all chain listeners. // TODO: .keys( is slow // BUG: Some re-in logic may depend on this being sync.
-	cat.echo && setTimeout.each(Object.keys(cat.echo), function(lat                                ){ (lat = cat.echo [lat          ]) && lat.on('in', msg) },0,99); // & linked at chains // TODO: .keys( is slow // BUG: Some re-in logic may depend on this being sync.
+	cat.any && setTimeout.each(Object.keys(cat.any), function(any: string | GetListener | undefined){ (any = cat.any![any as string]) && any(msg) },0,99); // 1st API job is to call all chain listeners. // TODO: .keys( is slow // BUG: Some re-in logic may depend on this being sync.
+	cat.echo && setTimeout.each(Object.keys(cat.echo), function(lat: string | ChainMeta | undefined){ (lat = cat.echo![lat as string]) && lat.on('in', msg) },0,99); // & linked at chains // TODO: .keys( is slow // BUG: Some re-in logic may depend on this being sync.
 
-	if((((msg.$$||'')                  )._||at).soul){ // comments are linear, but this line of code is non-linear, so if I were to comment what it does, you'd have to read 42 other comments first... but you can't read any of those comments until you first read this comment. What!? // shouldn't this match link's check?
+	if((((msg.$$||'') as Partial<Chain>)._||at).soul){ // comments are linear, but this line of code is non-linear, so if I were to comment what it does, you'd have to read 42 other comments first... but you can't read any of those comments until you first read this comment. What!? // shouldn't this match link's check?
 		// is there cases where it is a $$ that we do NOT want to do the following? 
-		if((sat = cat.next) && (sat = sat[key          ])){ // TODO: possible trick? Maybe have `ionmap` code set a sat? // TODO: Maybe we should do `cat.ask` instead? I guess does not matter.
-			tmp = {}            ; Object.keys(msg).forEach(function(k){ (tmp                 )[k] = (msg                 )[k] });
-			tmp.$ = (msg.$$||msg.$) .get(tmp.get = key          ); delete tmp.$$; delete tmp.$$$;
+		if((sat = cat.next) && (sat = sat[key as string])){ // TODO: possible trick? Maybe have `ionmap` code set a sat? // TODO: Maybe we should do `cat.ask` instead? I guess does not matter.
+			tmp = {} as ChainMsg; Object.keys(msg).forEach(function(k){ (tmp as Dict<unknown>)[k] = (msg as Dict<unknown>)[k] });
+			tmp.$ = (msg.$$||msg.$)!.get(tmp.get = key as string); delete tmp.$$; delete tmp.$$$;
 			sat.on('in', tmp);
 		}
 	}
@@ -155,17 +154,17 @@ function input(                                         msg          , cat      
 	link(msg, cat);
 }; Gun.on.in = input;
 
-function link(                                                        msg          , cat            ){ cat = cat || (this                                              ).as || msg.$ ._             ;
+function link(this: GunOn | OntoListener<ChainMsg, ChainMeta> | void, msg: ChainMsg, cat?: ChainMeta){ cat = cat || (this as Partial<OntoListener<ChainMsg, ChainMeta>>).as || msg.$!._ as ChainMeta;
 	if(msg.$$ && this !== Gun.on){ return } // $$ means we came from a link, so we are at the wrong level, thus ignore it unless overruled manually by being called directly.
 	if(!msg.put || cat.soul){ return } // But you cannot overrule being linked to nothing, or trying to link a soul chain - that must never happen.
-	var put = (msg.put||'')            , link                        = put['=']||put[':'], tmp                               ;
-	var root = cat.root, tat = root.$.get(put['#'] ).get(put['.'] )._;
+	var put = (msg.put||'') as ChainPut, link: ChainData | undefined = put['=']||put[':'], tmp: Dict<AnyMeta | 1> | undefined;
+	var root = cat.root, tat = root.$.get(put['#']!).get(put['.']!)._;
 	if('string' != typeof (link = valid(link))){
 		if(this === Gun.on){ (tat.echo || (tat.echo = {}))[cat.id] = cat } // allow some chain to explicitly force linking to simple data.
 		return; // by default do not link to data that is not a link.
 	}
 	if((tat.echo || (tat.echo = {}))[cat.id] // we've already linked ourselves so we do not need to do it again. Except... (annoying implementation details)
-		&& !((root.pass||'')                     )[cat.id]){ return } // if a new event listener was added, we need to make a pass through for it. The pass will be on the chain, not always the chain passed down. 
+		&& !((root.pass||'') as Dict<AnyMeta | 1>)[cat.id]){ return } // if a new event listener was added, we need to make a pass through for it. The pass will be on the chain, not always the chain passed down. 
 	if(tmp = root.pass){ if(tmp[link+cat.id]){ return } tmp[link+cat.id] = 1 } // But the above edge case may "pass through" on a circular graph causing infinite passes, so we hackily add a temporary check for that.
 
 	(tat.echo||(tat.echo={}))[cat.id] = cat; // set ourself up for the echo! // TODO: BUG? Echo to self no longer causes problems? Confirm.
@@ -173,38 +172,38 @@ function link(                                                        msg       
 	if(cat.has){ cat.link = link }
 	var sat = root.$.get(tat.link = link)._; // grab what we're linking to.
 	(sat.echo || (sat.echo = {}))[tat.id] = tat; // link it.
-	var tmp                                = (cat.ask||'')                 ; // ask the chain for what needs to be loaded next!
+	var tmp: Dict<AnyMeta | 1> | undefined = (cat.ask||'') as Dict<AnyMeta>; // ask the chain for what needs to be loaded next!
 	if(tmp[''] || cat.lex){ // we might need to load the whole thing // TODO: cat.lex probably has edge case bugs to it, need more test coverage.
 		sat.on('out', {get: {'#': link}});
 	}
-	setTimeout.each(Object.keys(tmp), function(get        , sat              ){ // if sub chains are asking for data. // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync?
-		if(!get || !(sat = tmp [get])){ return }
-		(sat           ).on('out', {get: {'#': link        , '.': get}}); // go get it.
+	setTimeout.each(Object.keys(tmp), function(get: string, sat?: AnyMeta | 1){ // if sub chains are asking for data. // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync?
+		if(!get || !(sat = tmp![get])){ return }
+		(sat as AnyMeta).on('out', {get: {'#': link as Soul, '.': get}}); // go get it.
 	},0,99);
 }; Gun.on.link = link;
 
-function unlink(msg          , cat           ){ // ugh, so much code for seemingly edge case behavior.
-	var put = (msg.put||'')            , change = (u !== put['='])? put['='] : put[':'], root = cat.root, link                                   , tmp                  ;
+function unlink(msg: ChainMsg, cat: ChainMeta){ // ugh, so much code for seemingly edge case behavior.
+	var put = (msg.put||'') as ChainPut, change = (u !== put['='])? put['='] : put[':'], root = cat.root, link: Soul | null | undefined | boolean, tmp: Partial<AnyMeta>;
 	if(u === change){ // 1st edge case: If we have a brand new database, no data will be found.
 		// TODO: BUG! because emptying cache could be async from below, make sure we are not emptying a newer cache. So maybe pass an Async ID to check against?
 		// TODO: BUG! What if this is a map? // Warning! Clearing things out needs to be robust against sync/async ops, or else you'll see `map val get put` test catastrophically fail because map attempts to link when parent graph is streamed before child value gets set. Need to differentiate between lack acks and force clearing.
 		if(cat.soul && u !== cat.put){ return } // data may not be found on a soul, but if a soul already has data, then nothing can clear the soul as a whole.
 		//if(!cat.has){ return }
-		tmp = (((msg.$$||msg.$||'')                  )._||'')                    ;
+		tmp = (((msg.$$||msg.$||'') as Partial<Chain>)._||'') as Partial<AnyMeta>;
 		if(msg['@'] && (u !== tmp.put || u !== cat.put)){ return } // a "not found" from other peers should not clear out data if we have already found it.
 		//if(cat.has && u === cat.put && !(root.pass||'')[cat.id]){ return } // if we are already unlinked, do not call again, unless edge case. // TODO: BUG! This line should be deleted for "unlink deeply nested".
 		if(link = cat.link || msg.linked){
-			delete ((root.$.get(link)._.echo||'')                   )[cat.id];
+			delete ((root.$.get(link)._.echo||'') as Dict<ChainMeta>)[cat.id];
 		}
 		if(cat.has){ // TODO: Empty out links, maps, echos, acks/asks, etc.?
 			cat.link = null;
 		}
 		cat.put = u; // empty out the cache if, for example, alice's car's color no longer exists (relative to alice) if alice no longer has a car.
 		// TODO: BUG! For maps, proxy this so the individual sub is triggered, not all subs.
-		setTimeout.each(Object.keys(cat.next||''), function(get        , sat            ){ // empty out all sub chains. // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync? // TODO: BUG? This will trigger deeper put first, does put logic depend on nested order? // TODO: BUG! For map, this needs to be the isolated child, not all of them.
-			if(!(sat = cat.next [get])){ return }
+		setTimeout.each(Object.keys(cat.next||''), function(get: string, sat?: ChainMeta){ // empty out all sub chains. // TODO: .keys( is slow // BUG? ?Some re-in logic may depend on this being sync? // TODO: BUG? This will trigger deeper put first, does put logic depend on nested order? // TODO: BUG! For map, this needs to be the isolated child, not all of them.
+			if(!(sat = cat.next![get])){ return }
 			//if(cat.has && u === sat.put && !(root.pass||'')[sat.id]){ return } // if we are already unlinked, do not call again, unless edge case. // TODO: BUG! This line should be deleted for "unlink deeply nested".
-			if(link){ delete ((root.$.get(link        ).get(get)._.echo||'')                   )[sat.id] }
+			if(link){ delete ((root.$.get(link as Soul).get(get)._.echo||'') as Dict<ChainMeta>)[sat.id] }
 			sat.on('in', {get: get, put: u, $: sat.$}); // TODO: BUG? Add recursive seen check?
 		},0,99);
 		return;
@@ -212,22 +211,22 @@ function unlink(msg          , cat           ){ // ugh, so much code for seeming
 	if(cat.soul){ return } // a soul cannot unlink itself.
 	if(msg.$$){ return } // a linked chain does not do the unlinking, the sub chain does. // TODO: BUG? Will this cancel maps?
 	link = valid(change); // need to unlink anytime we are not the same link, though only do this once per unlink (and not on init).
-	tmp = (msg.$ ._||'')                    ;
+	tmp = (msg.$!._||'') as Partial<AnyMeta>;
 	if(link === tmp.link || (cat.has && !tmp.link)){
-		if(((root.pass||'')                     )[cat.id] && 'string' !== typeof link){
+		if(((root.pass||'') as Dict<AnyMeta | 1>)[cat.id] && 'string' !== typeof link){
 
 		} else {
 			return;
 		}
 	}
-	delete ((tmp.echo||'')                   )[cat.id];
+	delete ((tmp.echo||'') as Dict<ChainMeta>)[cat.id];
 	unlink({get: cat.get, put: u, $: msg.$, linked: msg.linked = msg.linked || tmp.link}, cat); // unlink our sub chains.
 }; Gun.on.unlink = unlink;
 
-function ack(                              msg     , ev          ){
+function ack(this: OntoListener<Msg, Msg>, msg: Msg, ev?: unknown){
 	//if(!msg['%'] && (this||'').off){ this.off() } // do NOT memory leak, turn off listeners! Now handled by .ask itself
 	// manhattan:
-	var as = this.as, at = as.$ ._, root = at.root, get = (as.get||'')       , tmp = (((msg.put||'')            )[get['#']        ]||'')                    ;
+	var as = this.as, at = as.$!._, root = at.root, get = (as.get||'') as Lex, tmp = (((msg.put||'') as GunGraph)[get['#'] as Soul]||'') as Partial<GunNode>;
 	if(!msg.put || ('string' == typeof get['.'] && u === tmp[get['.']])){
 		if(u !== at.put){ return }
 		if(!at.soul && !at.has){ return } // TODO: BUG? For now, only core-chains will handle not-founds, because bugs creep in if non-core chains are used as $ but we can revisit this later for more powerful extensions.
@@ -244,11 +243,10 @@ function ack(                              msg     , ev          ){
 		}); delete at.Q;*/
 		return;
 	}
-	(msg._ || {}                    ).miss = 1;
+	(msg._ || {} as Partial<MsgMeta>).miss = 1;
 	Gun.on.put(msg);
 	return; // eom
 }
 
-var empty                     = {}, u           , text_rand = String.random, valid = Gun.valid, obj_has = function(o         , k             ){ return o && Object.prototype.hasOwnProperty.call(o, k) }, state = Gun.state, state_is = state.is, state_ify = state.ify;
+var empty: Partial<ChainMeta> = {}, u: undefined, text_rand = String.random, valid = Gun.valid, obj_has = function(o: unknown, k: PropertyKey){ return o && Object.prototype.hasOwnProperty.call(o, k) }, state = Gun.state, state_is = state.is, state_ify = state.ify;
 	
-}());

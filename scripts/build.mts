@@ -7,6 +7,8 @@
 // historical hand written JavaScript.
 //
 //   gun.js   <- src/*.ts bundled in the classic `USE(function(module){...})` format.
+//   src/*.js <- each module of gun.js also on its own ("unbuilt"), as upstream
+//               published them (`require('gun/src/book')`, rad.js, test/rad/book.html).
 //   sea.js   <- sea/*.ts bundled the same way.
 //   *.js     <- every other *.ts (lib/, kit/, the root entry points) emitted next to its source.
 //
@@ -54,6 +56,10 @@ interface Bundle {
   inner: string;
   // Optional source appended verbatim after the bundle's closing `}());`.
   footer?: string;
+  // Also emit every module as `<dir>/<name>.js`, wrapped in `;(function(){ ... }());`
+  // exactly like the historical `lib/unbuild.js` wrote them (the wrapper keeps
+  // e.g. book's `sT`/`B` from becoming globals when loaded with a <script> tag).
+  unbuilt?: boolean;
 }
 
 const BUNDLES: Bundle[] = [
@@ -67,6 +73,7 @@ const BUNDLES: Bundle[] = [
     outer: '\t',
     inner: '\t\t',
     footer: 'deprecated',
+    unbuilt: true,
   },
   {
     out: 'sea.js',
@@ -134,6 +141,17 @@ function bundle(b: Bundle): string {
   return out;
 }
 
+function unbuilt(b: Bundle): Array<[string, string]> {
+  const outputs: Array<[string, string]> = [];
+  for (const name of b.modules) {
+    const out = `${b.dir}/${name}.js`;
+    if (wanted(out)) {
+      outputs.push([out, `;(function(){\n${strip(`${b.dir}/${name}.ts`)}\n}());`]);
+    }
+  }
+  return outputs;
+}
+
 function standalone(): Array<[string, string]> {
   const outputs: Array<[string, string]> = [];
   for (const dir of STANDALONE_DIRS) {
@@ -159,6 +177,9 @@ function main(): void {
   for (const b of BUNDLES) {
     if (wanted(b.out)) {
       outputs.push([b.out, bundle(b)]);
+    }
+    if (b.unbuilt) {
+      outputs.push(...unbuilt(b));
     }
   }
   outputs.push(...standalone());
