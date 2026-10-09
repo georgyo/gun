@@ -16,5 +16,5 @@ require('./mesh');
 require('./websocket');
 require('./localStorage');
 module.exports = Gun;
-	
+
 }());

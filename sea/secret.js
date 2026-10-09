@@ -10,7 +10,7 @@
         if(!SEA.I){ throw 'No secret mix.' }
         pair = await SEA.I(null, {what: key, how: 'secret', why: opt.why});
       }
-      var pub = key.epub || key;
+      var pub = (key).epub || key;
       var epub = pair.epub;
       var epriv = pair.epriv;
       var ecdhSubtle = shim.ossl || shim.subtle;
@@ -51,5 +51,5 @@
     }
 
     module.exports = SEA.secret;
-  
+
 }());

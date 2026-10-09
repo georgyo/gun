@@ -18,7 +18,7 @@
 		var opt = root.opt, peers = opt.peers;
 		if(false === opt.axe){ return }
 		if(!Gun.window){ return } // handled by ^ lib/axe.js
-		var w = Gun.window, lS = w.localStorage || opt.localStorage || {}, loc = w.location || opt.location || {}, nav = w.navigator || opt.navigator || {};
+		var w = Gun.window, lS = w.localStorage || opt.localStorage  || {}, loc = w.location || opt.location || {}, nav = w.navigator || opt.navigator || {};
 		var axe = root.axe = {}, tmp, id;
 		var mesh = opt.mesh = opt.mesh || Gun.Mesh(root); // DAM!
 
@@ -53,7 +53,7 @@
 			(function next(){
 				if(!peer.wire){ return }
 				if(!axe.fall){ setTimeout(next, 9); return } // not found yet
-				var one = (next.fall = next.fall || Object.keys(axe.fall||'')).pop();
+				var one = ((next).fall = (next).fall || Object.keys(axe.fall||'')).pop();
 				if(!one){ return }
 				setTimeout(next, 99);
 				mesh.say({dam: 'opt', opt: {peers: one}}, peer);
@@ -71,7 +71,7 @@
 
 			// TODO: Finish porting below? Maybe not.
 
-			Object.keys(last.peers||'').forEach(function(key){
+			Object.keys((last).peers||'').forEach(function(key){
 				tmp = peers[id = key] = peers[id] || {};
 				tmp.id = tmp.url = id;
 			});

@@ -12,7 +12,7 @@
 
     // This creates Web Cryptography API compliant JWK for sign/verify purposes
     s.jwk = function(pub, d){  // d === priv
-      pub = pub.split('.');
+      pub = (pub).split('.');
       var x = pub[0], y = pub[1];
       var jwk = {kty: "EC", crv: "P-256", x: x, y: y, ext: true};
       jwk.key_ops = d ? ['sign'] : ['verify'];
@@ -34,7 +34,7 @@
     s.check = function(t){ return (typeof t == 'string') && ('SEA{' === t.slice(0,4)) }
     s.parse = async function p(t){ try {
       var yes = (typeof t == 'string');
-      if(yes && 'SEA{' === t.slice(0,4)){ t = t.slice(3) }
+      if(yes && 'SEA{' === (t).slice(0,4)){ t = (t).slice(3) }
       return yes ? await shim.parse(t) : t;
       } catch (e) {}
       return t;
@@ -42,5 +42,5 @@
 
     SEA.opt = s;
     module.exports = s
-  
+
 }());

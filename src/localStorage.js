@@ -1,12 +1,14 @@
 ;(function(){
 
+;(function(){
+
 if(typeof Gun === 'undefined'){ return }
 
 var noop = function(){}, store, u;
 try{store = (Gun.window||noop).localStorage}catch(e){}
 if(!store){
 	Gun.log("Warning: No localStorage exists to persist data to!");
-	store = {setItem: function(k,v){this[k]=v}, removeItem: function(k){delete this[k]}, getItem: function(k){return this[k]}};
+	store = {setItem: function( k,v){this[k]=v}, removeItem: function( k){delete this[k]}, getItem: function( k){return this[k]}};
 }
 
 var parse = JSON.parseAsync || function(t,cb,r){ var u; try{ cb(u, JSON.parse(t,r)) }catch(e){ cb(e) } }
@@ -17,9 +19,9 @@ Gun.on('create', function lg(root){
 	var opt = root.opt, graph = root.graph, acks = [], disk, to, size, stop;
 	if(false === opt.localStorage){ return }
 	opt.prefix = opt.file || 'gun/';
-	try{ disk = lg[opt.prefix] = lg[opt.prefix] || JSON.parse(size = store.getItem(opt.prefix)) || {}; // TODO: Perf! This will block, should we care, since limited to 5MB anyways?
-	}catch(e){ disk = lg[opt.prefix] = {}; }
-	size = (size||'').length;
+	try{ disk = (lg)[opt.prefix] = (lg)[opt.prefix] || JSON.parse(size = store.getItem(opt.prefix)) || {}; // TODO: Perf! This will block, should we care, since limited to 5MB anyways?
+	}catch(e){ disk = (lg)[opt.prefix] = {}; }
+	size = (size ||'').length;
 
 	root.on('get', function(msg){
 		this.to.next(msg);
@@ -37,13 +39,13 @@ Gun.on('create', function lg(root){
 
 	root.on('put', function(msg){
 		this.to.next(msg); // remember to call next middleware adapter
-		var put = msg.put, soul = put['#'], key = put['.'], id = msg['#'], ok = msg.ok||'', tmp; // pull data off wire envelope
+		var put = msg.put, soul = put['#'], key = put['.'], id = msg['#'], ok = (msg.ok||''), tmp; // pull data off wire envelope
 		disk[soul] = Gun.state.ify(disk[soul], key, put['>'], put[':'], soul); // merge into disk object
-		if(stop && size > (4999880)){ root.on('in', {'@': id, err: "localStorage max!"}); return; }
+		if(stop && size  > (4999880)){ root.on('in', {'@': id, err: "localStorage max!"}); return; }
 		//if(!msg['@']){ acks.push(id) } // then ack any non-ack write. // TODO: use batch id.
-		if(!msg['@'] && (!msg._.via || Math.random() < (ok['@'] / ok['/']))){ acks.push(id) } // then ack any non-ack write. // TODO: use batch id.
+		if(!msg['@'] && (!msg._.via || Math.random() < ((ok['@']) / (ok['/'])))){ acks.push(id) } // then ack any non-ack write. // TODO: use batch id.
 		if(to){ return }
-		to = setTimeout(flush, 9+(size / 333)); // 0.1MB = 0.3s, 5MB = 15s 
+		to = setTimeout(flush, 9+(size  / 333)); // 0.1MB = 0.3s, 5MB = 15s 
 	});
 	function flush(){
 		if(!acks.length && ((setTimeout.turn||'').s||'').length){ setTimeout(flush,99); return; } // defer if "busy" && no saves.
@@ -52,7 +54,7 @@ Gun.on('create', function lg(root){
 			try{!err && store.setItem(opt.prefix, tmp);
 			}catch(e){ err = stop = e || "localStorage failure" }
 			if(err){
-				Gun.log(err + " Consider using GUN's IndexedDB plugin for RAD for more storage space, https://gun.eco/docs/RAD#install");
+				Gun.log(err  + " Consider using GUN's IndexedDB plugin for RAD for more storage space, https://gun.eco/docs/RAD#install");
 				root.on('localStorage:error', {err: err, get: opt.prefix, put: disk});
 			}
 			size = tmp.length;
@@ -66,4 +68,7 @@ Gun.on('create', function lg(root){
 
 });
 	
+
+}());
+
 }());

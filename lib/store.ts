@@ -1,0 +1,186 @@
+var Gun: GunStatic = (typeof window !== "undefined")? window.Gun : require('../gun');
+
+Gun.on('create', function(root){
+    if(Gun.TESTING){ root.opt.file = 'radatatest' }
+    this.to.next(root);
+    var opt = root.opt, empty = {}, u: undefined;
+    if(false === opt.rad || false === opt.radisk){ return }
+    if((u+'' != typeof process) && 'false' === ''+(process.env||'').RAD){ return }
+    var Radisk: RadiskStatic = (Gun.window && Gun.window.Radisk) || require('./radisk');
+    var Radix = Radisk.Radix;
+    var dare = Radisk(opt) as Rad /* without `opt.store` (lib/rfs.js...) upstream throws below */, esc = String.fromCharCode(27);
+    var ST = 0;
+ 
+    root.on('put', function(msg){
+        this.to.next(msg);
+        if((msg._||'').rad){ return } // don't save what just came from a read.
+        //if(msg['@']){ return } // WHY DID I NOT ADD THIS?
+        var id = msg['#'], put = msg.put, soul = put['#'], key = put['.'], val = put[':'], state = put['>'], tmp: undefined;
+        var DBG = (msg._||'').DBG; DBG && (DBG.sp = DBG.sp || +new Date);
+        //var lot = (msg._||'').lot||''; count[id] = (count[id] || 0) + 1; 
+        var S = (msg._||'').RPS || ((msg._||'').RPS = +new Date);
+        //console.log("PUT ------->>>", soul,key, val, state);
+        //dare(soul+esc+key, {':': val, '>': state}, dare.one[id] || function(err, ok){
+        dare(soul+esc+key, {':': val, '>': state}, function(err, ok){
+            //console.log("<<<------- PAT", soul,key, val, state, 'in', +new Date - S);
+            DBG && (DBG.spd = DBG.spd || +new Date);
+            console.STAT && console.STAT(S, +new Date - S, 'put');
+            //if(!err && count[id] !== lot.s){ console.log(err = "Disk count not same as ram count."); console.STAT && console.STAT(+new Date, lot.s - count[id], 'put ack != count') } delete count[id];
+            if(err){ root.on('in', {'@': id, err: err as string, DBG: DBG}); return }
+            root.on('in', {'@': id, ok: ok as Ok, DBG: DBG});
+        //}, id, DBG && (DBG.r = DBG.r || {}));
+        }, false && id, DBG && (DBG.r = DBG.r as Debug || {}));
+        DBG && (DBG.sps = DBG.sps || +new Date);
+    });
+    var count = {}, obj_empty = Object.empty;
+ 
+    root.on('get', function(msg){
+        this.to.next(msg);
+        var ctx = msg._||'', DBG = ctx.DBG = msg.DBG; DBG && (DBG.sg = +new Date);
+        var id = msg['#'], get = msg.get, soul = msg.get['#'], has = msg.get['.'] as string | LexMatch /* or `true`, read as an empty match */||'', o: StoreGetOpt = {}, graph: GunGraph | undefined, lex: undefined, key: string | undefined, tmp: string | number | ChainMeta | undefined, force: 1 | null | undefined;
+        if('string' == typeof soul){
+            key = soul;
+        } else 
+        if(soul){
+            if(u !== (tmp = soul['*'])){ o.limit = force = 1 }
+            if(u !== soul['>']){ o.start = soul['>'] }
+            if(u !== soul['<']){ o.end = soul['<'] }
+            key = force? (''+tmp) : tmp || soul['='];
+            force = null;
+        }
+        if(key && !o.limit){ // a soul.has must be on a soul, and not during soul*
+            if('string' == typeof has){
+                key = key+esc+(o.atom = has);
+            } else 
+            if(has){
+                if(u !== has['>']){ o.start = has['>']; o.limit = 1 }
+                if(u !== has['<']){ o.end = has['<']; o.limit = 1 }
+                if(u !== (tmp = has['*'])){ o.limit = force = 1 }
+                if(key){ key = key+esc + (force? (''+(tmp||'')) : tmp || (o.atom = has['='] || '')) }
+            }
+        }
+        if((tmp = get['%']) || o.limit){
+            o.limit = ((tmp as /* undefined compares false */ number) <= (o.pack || (1000 * 100)))? tmp : 1;
+        }
+        if((has as LexMatch)['-'] || ((soul||{}) as LexMatch)['-'] || get['-']){ o.reverse = true }
+        if((tmp = ((root.next||'') as Dict<ChainMeta>)[soul as /* an object is stringified */ string]) && tmp.put){
+            if(o.atom){
+                tmp = ((tmp.next||'') as Dict<ChainMeta>)[o.atom] ;
+                if(tmp && tmp.root && tmp.root.graph && tmp.root.graph[soul as string] && tmp.root.graph[soul as string]![o.atom]){ return }
+            } else
+            if(tmp && tmp.rad){ return }
+        }
+        var now = Gun.state();
+        var S = (+new Date), C = 0, SPT = 0; // STATS!
+        DBG && (DBG.sgm = S);
+        //var GID = String.random(3); console.log("GET ------->>>", GID, key, o, '?', get);
+        dare(key||'', function(err, data, info){
+            //console.log("<<<------- GOT", GID, +new Date - S, err, data);
+            DBG && (DBG.sgr = +new Date);
+            DBG && (DBG.sgi = info);
+            try{(opt.store as RadiskStore).stats!.get.time[statg % 50] = (+new Date) - S; ++statg;
+                (opt.store as RadiskStore).stats!.get.count++;
+                if(err){ (opt.store as RadiskStore).stats!.get.err = err }
+            }catch(e){} // STATS!
+            //if(u === data && info.chunks > 1){ return } // if we already sent a chunk, ignore ending empty responses. // this causes tests to fail.
+            console.STAT && console.STAT(S, +new Date - S, 'got', JSON.stringify(key)); S = +new Date;
+            info = info || '' as RadiskReadOpt;
+            var va, ve;
+            if(info.unit && data && u !== (va = (data as StoreValue)[':']) && u !== (ve = (data as StoreValue)['>'])){ // new format
+                var tmp = key!.split(esc), so = tmp[0], ha = tmp[1];
+                (graph = graph || {})[so] = Gun.state.ify(graph[so], ha, ve, va, so);
+                root.$.get(so).get(ha)._.rad = now;
+                // REMEMBER TO ADD _rad TO NODE/SOUL QUERY!
+            } else
+            if(data){ // old code path
+                if(typeof data !== 'string'){
+                    if(o.atom){
+                        data = u;
+                    } else {
+                        Radix.map(data as RadixTree, each, o); // IS A RADIX TREE, NOT FUNCTION!
+                    }
+                }
+                if(!graph && data){ each(data, '') }
+                // TODO: !has what about soul lookups?
+                if(!o.atom && !has && 'string' == typeof soul && !o.limit && !o.more){
+                    root.$.get(soul)._.rad = now;
+                }
+            }
+            DBG && (DBG.sgp = +new Date);
+            // TODO: PERF NOTES! This is like 0.2s, but for each ack, or all? Can you cache these preps?
+            // TODO: PERF NOTES! This is like 0.2s, but for each ack, or all? Can you cache these preps?
+            // TODO: PERF NOTES! This is like 0.2s, but for each ack, or all? Can you cache these preps?
+            // TODO: PERF NOTES! This is like 0.2s, but for each ack, or all? Can you cache these preps?
+            // TODO: PERF NOTES! This is like 0.2s, but for each ack, or all? Can you cache these preps?
+            // Or benchmark by reusing first start date.
+            if(console.STAT && (ST = +new Date - S) > 9){ console.STAT(S, ST, 'got prep time'); console.STAT(S, C, 'got prep #') } SPT += ST; C = 0; S = +new Date;
+            var faith = function(){} as MsgMeta; faith.faith = true; faith.rad = get; // HNPERF: We're testing performance improvement by skipping going through security again, but this should be audited.
+            root.on('in', {'@': id, put: graph, '%': info.more? 1 : u, err: err? err as string : u, _: faith, DBG: DBG});
+            console.STAT && (ST = +new Date - S) > 9 && console.STAT(S, ST, 'got emit', Object.keys(graph||{}).length);
+            graph = u; // each is outside our scope, we have to reset graph to nothing!
+        }, o, DBG && (DBG.r = DBG.r as Debug || {}));
+        DBG && (DBG.sgd = +new Date);
+        console.STAT && (ST = +new Date - S) > 9 && console.STAT(S, ST, 'get call'); // TODO: Perf: this was half a second??????
+        function each(val: unknown, has: string | string[], a?: string, b?: string[]){ // TODO: THIS CODE NEEDS TO BE FASTER!!!!
+            C++;
+            if(!val){ return }
+            has = (key+(has as string)).split(esc);
+            var soul = has.slice(0,1)[0];
+            has = has.slice(-1)[0];
+            if(o.limit && o.limit <= (o.count as /* undefined compares false */ number)){ return true }
+            var va, ve, so = soul, ha = has;
+            //if(u !== (va = val[':']) && u !== (ve = val['>'])){ // THIS HANDLES NEW CODE!
+            if('string' != typeof val){ // THIS HANDLES NEW CODE!
+                va = (val as StoreValue)[':']; ve = (val as StoreValue)['>'];
+                (graph = graph || {})[so] = Gun.state.ify(graph[so], ha, ve, va, so);
+                //root.$.get(so).get(ha)._.rad = now;
+                o.count = (o.count || 0) + (((va||'') as {length?: number}).length || 9);
+                return;
+            }
+            o.count = (o.count || 0) + val.length;
+            var tmp = val.lastIndexOf('>');
+            var state = Radisk.decode(val.slice(tmp+1), null, esc);
+            val = Radisk.decode(val.slice(0,tmp), null, esc);
+            (graph = graph || {})[soul] = Gun.state.ify(graph[soul], has, state as HamState /* ify ignores a non number */, val, soul);
+        }
+    });
+    var val_is = Gun.valid;
+    (opt.store||{} as Partial<RadiskStore>).stats = {get:{time:{}, count:0}, put: {time:{}, count:0}}; // STATS!
+    var statg = 0, statp = 0; // STATS!
+});
+/** A value as lib/store.js writes it to Radisk: the value and its state. */
+interface StoreValue {
+    ':': GunValue;
+    '>': HamState;
+}
+
+/** The options of a Radisk read made by a `get`. */
+interface StoreGetOpt extends RadiskReadOpt {
+    /** The key of a single key read. */
+    atom?: string;
+    /** How many bytes were read so far. */
+    count?: number;
+    /** Max `%` (size) a get can ask for. Never set: defaults to 100000. */
+    pack?: number;
+}
+
+declare module '../src/types' {
+    interface GunOptions {
+        /** `false` disables lib/store.js. */
+        rad?: boolean;
+        radisk?: boolean;
+    }
+    interface MsgMeta {
+        /** A read from disk (lib/store.js): the `get` it answers. Not saved again. */
+        rad?: Lex;
+        /** When lib/store.js started saving it. */
+        RPS?: number;
+    }
+    interface MetaBase {
+        /** When lib/store.js last loaded this chain (or key) from disk. */
+        rad?: HamState;
+    }
+}
+
+import type { Debug, Dict, GunGraph, GunStatic, GunValue, HamState, LexMatch, MsgMeta, Ok, ChainMeta } from '../src/types';
+import type { Rad, RadiskReadOpt, RadiskStatic, RadiskStore, RadixTree } from './types';

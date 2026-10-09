@@ -15,5 +15,5 @@
 
     try{ if(u+'' !== typeof MODULE){ MODULE.exports = SEA } }catch(e){}
     module.exports = SEA;
-  
+
 }());

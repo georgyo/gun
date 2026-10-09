@@ -1,5 +1,13 @@
+# TypeScript sources: the package ships the generated JavaScript (see TYPESCRIPT.md)
 *.ts
+*.mts
 /temp/
+# ...but keep the hand written public type definitions
 !*.d.ts
+# internal ambient declarations used only to type check lib/mobile.ts
+/lib/modules.d.ts
+# the configs that type check the sources and the typings in the repository
+/tsconfig.json
+/tsconfig.types.json
 *.radata
 isolate-*

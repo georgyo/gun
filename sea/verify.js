@@ -15,7 +15,7 @@
       }
       opt = opt || {};
       // SEA.I // verify is free! Requires no user permission.
-      var pub = pair.pub || pair;
+      var pub = (pair).pub || pair;
       var key = SEA.opt.slow_leak? await SEA.opt.slow_leak(pub) : await (shim.ossl || shim.subtle).importKey('jwk', S.jwk(pub), {name: 'ECDSA', namedCurve: 'P-256'}, false, ['verify']);
       var hash = await sha(json.m);
       var buf, sig, check, tmp; try{
@@ -54,9 +54,9 @@
     var O = SEA.opt;
     SEA.opt.fall_verify = async function(data, pair, cb, opt, f){
       if(f === SEA.opt.fallback){ throw "Signature did not match" } f = f || 1;
-      var tmp = data||'';
+      var tmp = (data||'');
       data = SEA.opt.unpack(data) || data;
-      var json = await S.parse(data), pub = pair.pub || pair, key = await SEA.opt.slow_leak(pub);
+      var json = await S.parse(data), pub = (pair).pub || pair, key = await SEA.opt.slow_leak(pub);
       var hash = (f <= SEA.opt.fallback)? shim.Buffer.from(await shim.subtle.digest({name: 'SHA-256'}, new shim.TextEncoder().encode(await S.parse(json.m)))) : await sha(json.m); // this line is old bad buggy code but necessary for old compatibility.
       var buf; var sig; var check; try{
         buf = shim.Buffer.from(json.s, opt.encode || 'base64') // NEW DEFAULT!
@@ -78,5 +78,4 @@
     }
     SEA.opt.fallback = 2;
 
-  
 }());

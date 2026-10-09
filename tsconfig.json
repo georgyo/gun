@@ -1,17 +1,46 @@
 {
+  // Type checks the TypeScript sources. Nothing is emitted by tsc: the
+  // JavaScript is produced by scripts/build.mts, which blanks out the types
+  // (erasable syntax only) so the output stays line for line identical to
+  // the source. The public, hand written type definitions (index.d.ts,
+  // gun.d.ts, sea.d.ts, types/**, lib/*.d.ts) are checked by
+  // tsconfig.types.json instead.
   "compilerOptions": {
-    "emitDeclarationOnly": true,
-    "declaration": true,
+    "target": "es2022",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "types": ["node"],
+    "noEmit": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
+  // Ambient declarations of untyped packages imported by lib/mobile.ts.
+  "files": ["lib/modules.d.ts"],
   "include": [
-    // only compile the type definitions by default.
-    // That is, ignore the files in 'examples/**'
-    "**/*.d.ts"
+    "*.ts",
+    "src/**/*.ts",
+    "sea/**/*.ts",
+    "lib/**/*.ts",
+    "kit/**/*.ts",
+    "scripts/**/*.mts"
   ],
   "exclude": [
-    // Among the type definitions, don't try to compile
-    // the test file which implements bad types.
-    // It implements bad types for testing purposes.
-    "**/*.test-d.ts"
+    "**/*.d.ts",
+    "node_modules",
+    "lib/text-encoding",
+    "examples",
+    "test",
+    "types"
   ]
 }

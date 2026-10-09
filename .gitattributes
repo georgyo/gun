@@ -1,0 +1,17 @@
+# JavaScript generated from the TypeScript sources by `npm run build`
+# (scripts/build.mts). Edit the .ts file next to it instead; see TYPESCRIPT.md.
+/gun.js linguist-generated
+/gun.min.js linguist-generated
+/sea.js linguist-generated
+/src/*.js linguist-generated
+/sea/*.js linguist-generated
+/lib/*.js linguist-generated
+/axe.js linguist-generated
+/as.js linguist-generated
+/nts.js linguist-generated
+/rad.js linguist-generated
+/index.js linguist-generated
+/browser.js linguist-generated
+/kit/web.js linguist-generated
+# lib/untitled.js has no TypeScript source (it does not parse); lib/text-encoding/ is vendored.
+/lib/untitled.js -linguist-generated

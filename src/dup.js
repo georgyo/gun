@@ -28,5 +28,5 @@ function Dup(opt){
 	return dup;
 }
 module.exports = Dup;
-	
+
 }());

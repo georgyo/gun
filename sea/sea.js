@@ -56,5 +56,5 @@
     module.exports = SEA
     // -------------- END SEA MODULES --------------------
     // -- BEGIN SEA+GUN MODULES: BUNDLED BY DEFAULT UNTIL OTHERS USE SEA ON OWN -------
-  
+
 }());

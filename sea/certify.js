@@ -27,7 +27,7 @@
             })
           }
 
-          if (typeof certificants === 'object' && certificants.pub) return certificants.pub
+          if (typeof certificants === 'object' && (certificants).pub) return (certificants).pub
           return data.length > 0 ? data : null
         }
         return
@@ -36,8 +36,8 @@
       if (!certificants) return console.log("No certificant found.")
 
       const expiry = opt.expiry && (typeof opt.expiry === 'number' || typeof opt.expiry === 'string') ? parseFloat(opt.expiry) : null
-      const readPolicy = (policy || {}).read ? policy.read : null
-      const writePolicy = (policy || {}).write ? policy.write : typeof policy === 'string' || Array.isArray(policy) || policy["+"] || policy["#"] || policy["."] || policy["="] || policy["*"] || policy[">"] || policy["<"] ? policy : null
+      const readPolicy = ((policy || {})).read ? (policy).read : null
+      const writePolicy = ((policy || {})).write ? (policy).write : typeof policy === 'string' || Array.isArray(policy) || policy["+"] || policy["#"] || policy["."] || policy["="] || policy["*"] || policy[">"] || policy["<"] ? policy : null
       // The "blacklist" feature is now renamed to "block". Why ? BECAUSE BLACK LIVES MATTER!
       // We can now use 3 keys: block, blacklist, ban
       const block = (opt || {}).block || (opt || {}).blacklist || (opt || {}).ban || {}
@@ -70,5 +70,5 @@
     }});
 
     module.exports = SEA.certify;
-  
+
 }());

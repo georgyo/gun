@@ -37,19 +37,19 @@ String.hash = function(s, c){ // via SO
 	    return c;
 	  }
 var has = Object.prototype.hasOwnProperty;
-Object.plain = function(o){ return o? (o instanceof Object && o.constructor === Object) || Object.prototype.toString.call(o).match(/^\[object (\w+)\]$/)[1] === 'Object' : false }
+Object.plain = function(o) { return o? (o instanceof Object && o.constructor === Object) || Object.prototype.toString.call(o).match(/^\[object (\w+)\]$/)[1] === 'Object' : false }
 Object.empty = function(o, n){
 	for(var k in o){ if(has.call(o, k) && (!n || -1==n.indexOf(k))){ return false } }
 	return true;
 }
-Object.keys = Object.keys || function(o){
+Object.keys = Object.keys || function(o) {
 	var l = [];
 	for(var k in o){ if(has.call(o, k)){ l.push(k) } }
 	return l;
 }
 ;(function(){
 	var u, sT = setTimeout, l = 0, c = 0
-	, sI = (typeof setImmediate !== ''+u && setImmediate) || (function(c,f){
+	, sI = (typeof setImmediate !== ''+u && setImmediate) || (function(c, f){
 		if(typeof MessageChannel == ''+u){ return sT }
 		(c = new MessageChannel()).port1.onmessage = function(e){ ''==e.data && f() }
 		return function(q){ f=q;c.port2.postMessage('') }
@@ -74,7 +74,7 @@ Object.keys = Object.keys || function(o){
 }());
 ;(function(){
 	var u, sT = setTimeout, T = sT.turn;
-	(sT.each = sT.each || function(l,f,e,S){ S = S || 9; (function t(s,L,r){
+	(sT.each = sT.each || function(l, f, e, S){ S = S || 9; (function t(s, L, r){
 	  if(L = (s = (l||[]).splice(0,S)).length){
 	  	for(var i = 0; i < L; i++){
 	  		if(u !== (r = f(s[i]))){ break }
@@ -83,5 +83,5 @@ Object.keys = Object.keys || function(o){
 	  } e && e(r);
 	}())})();
 }());
-	
+
 }());
